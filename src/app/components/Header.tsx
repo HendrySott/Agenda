@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
-import { ChevronLeft, ChevronRight, Plus, Calendar, Users, UserCircle, Settings, LogOut } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Users, UserCircle, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   viewMode: string;
@@ -23,7 +23,20 @@ export function Header({
   onLogout,
 }: HeaderProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const isDashboard = location.pathname === '/';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const navigateWeek = (direction: number) => {
     const newDate = new Date(currentWeek);
@@ -119,11 +132,37 @@ export function Header({
             )}
 
             {userName && (
-              <div className="flex items-center space-x-2 border-l pl-4 border-gray-200">
-                <span className="text-sm text-gray-600">{userName}</span>
-                <Button variant="ghost" size="sm" onClick={onLogout} className="text-gray-500 hover:text-red-600">
-                  <LogOut className="h-4 w-4" />
-                </Button>
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex items-center space-x-1.5 text-sm text-gray-700 hover:text-gray-900 rounded-md px-3 py-1.5 hover:bg-gray-100 cursor-pointer"
+                >
+                  <User className="h-4 w-4" />
+                  <span>{userName}</span>
+                  <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="px-3 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">{userName}</p>
+                    </div>
+                    <button
+                      onClick={() => { navigate('/account'); setMenuOpen(false); }}
+                      className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Administrar cuenta
+                    </button>
+                    <div className="border-t border-gray-100" />
+                    <button
+                      onClick={() => { onLogout?.(); setMenuOpen(false); }}
+                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

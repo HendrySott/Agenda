@@ -44,6 +44,20 @@ export async function getMe() {
   return handleResponse(res);
 }
 
+export async function updateAccount(data) {
+  const res = await fetch(`${API}/auth/account`, {
+    method: 'PUT', headers: headers(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateAvatar(image) {
+  const res = await fetch(`${API}/auth/avatar`, {
+    method: 'PUT', headers: headers(), body: JSON.stringify({ image }),
+  });
+  return handleResponse(res);
+}
+
 // Employees
 export async function getEmployees() {
   const res = await fetch(`${API}/employees`, { headers: headers() });
