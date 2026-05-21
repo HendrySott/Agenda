@@ -136,13 +136,13 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-3 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Empleados</h1>
+          <h1 className="mb-2 text-2xl text-gray-900 sm:text-3xl">Empleados</h1>
           <p className="text-gray-600">Gestiona tu equipo de empleados</p>
         </div>
-        <Button onClick={() => handleOpenModal()} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => handleOpenModal()} className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Agregar Empleado
         </Button>
@@ -150,24 +150,24 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {employees.map(employee => (
-          <div key={employee.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
+          <div key={employee.id} className="rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-lg sm:p-6">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 items-center space-x-3">
                 {employee.image ? (
-                  <img src={employee.image} alt={employee.name} className="w-16 h-16 rounded-full object-cover" />
+                  <img src={employee.image} alt={employee.name} className="h-14 w-14 shrink-0 rounded-full object-cover sm:h-16 sm:w-16" />
                 ) : (
-                  <div className={`w-16 h-16 ${employee.color} rounded-full flex items-center justify-center`}>
+                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full sm:h-16 sm:w-16 ${employee.color}`}>
                     <User className="h-8 w-8 text-white" />
                   </div>
                 )}
-                <div>
-                  <h3 className="text-lg text-gray-900">{employee.name} {employee.lastName}</h3>
+                <div className="min-w-0">
+                  <h3 className="truncate text-lg text-gray-900">{employee.name} {employee.lastName}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getStatusColor(employee.status)} text-white`}>
                     {getStatusText(employee.status)}
                   </span>
                 </div>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 self-end sm:self-start">
                 <Button size="sm" variant="outline" onClick={() => handleOpenModal(employee)}>
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -178,17 +178,17 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
             </div>
 
             <div className="space-y-2 text-sm">
-              <div className="flex items-center text-gray-600">
-                <Mail className="h-4 w-4 mr-2" />
-                {employee.email}
+              <div className="flex min-w-0 items-center text-gray-600">
+                <Mail className="h-4 w-4 mr-2 shrink-0" />
+                <span className="truncate">{employee.email}</span>
               </div>
-              <div className="flex items-center text-gray-600">
-                <Phone className="h-4 w-4 mr-2" />
-                {employee.phone}
+              <div className="flex min-w-0 items-center text-gray-600">
+                <Phone className="h-4 w-4 mr-2 shrink-0" />
+                <span className="truncate">{employee.phone}</span>
               </div>
-              <div className="flex items-center text-gray-600">
-                <MapPin className="h-4 w-4 mr-2" />
-                {employee.address}
+              <div className="flex min-w-0 items-center text-gray-600">
+                <MapPin className="h-4 w-4 mr-2 shrink-0" />
+                <span className="truncate">{employee.address}</span>
               </div>
             </div>
 
@@ -207,7 +207,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingEmployee ? 'Editar Empleado' : 'Agregar Nuevo Empleado'}
@@ -215,7 +215,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Nombre *</Label>
                 <Input
@@ -247,7 +247,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Teléfono *</Label>
                 <Input
@@ -288,7 +288,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
 
             <div>
               <Label className="mb-3 block">Días Laborales</Label>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {DAYS_OF_WEEK.map(day => (
                   <div key={day.id} className="flex items-center space-x-2">
                     <Checkbox
@@ -317,7 +317,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
               </select>
             </div>
 
-            <div className="flex space-x-2 pt-4 border-t">
+            <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
               <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1">
                 Cancelar
               </Button>

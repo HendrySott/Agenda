@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Mail, Save, Settings } from 'lucide-react';
+import { Mail, MessageCircle, Save, Settings } from 'lucide-react';
 import { EmailTemplates } from '../components/config/EmailTemplates';
 import { BusinessInfo } from '../components/config/BusinessInfo';
 import { CalendarSync } from '../components/config/CalendarSync';
-import { Config, EmailTemplate, BusinessInfo as BusinessInfoType, CalendarSync as CalendarSyncType } from '../types';
+import { Config, EmailTemplate, BusinessInfo as BusinessInfoType, CalendarSync as CalendarSyncType, NotificationSettings } from '../types';
 
 interface ConfigPageProps {
   config: Config;
@@ -15,17 +15,22 @@ interface ConfigPageProps {
 
 export function ConfigPage({ config, onUpdateConfig }: ConfigPageProps) {
   const [email, setEmail] = useState(config.notificationEmail);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(config.notificationSettings);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleNotificationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
 
     setTimeout(() => {
-      onUpdateConfig({ ...config, notificationEmail: email });
+      onUpdateConfig({ ...config, notificationEmail: email, notificationSettings });
       setIsSaving(false);
-      alert('Email de notificaciones guardado correctamente');
+      alert('Configuración de notificaciones guardada correctamente');
     }, 500);
+  };
+
+  const updateNotificationSetting = (field: keyof NotificationSettings, value: string | boolean) => {
+    setNotificationSettings(prev => ({ ...prev, [field]: value }));
   };
 
   const handleAddTemplate = (template: Omit<EmailTemplate, 'id'>) => {
@@ -59,43 +64,171 @@ export function ConfigPage({ config, onUpdateConfig }: ConfigPageProps) {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="mx-auto max-w-6xl p-3 sm:p-6">
       <div className="mb-6">
         <div className="flex items-center mb-2">
           <Settings className="h-6 w-6 text-blue-600 mr-2" />
-          <h1 className="text-3xl text-gray-900">Configuración</h1>
+          <h1 className="text-2xl text-gray-900 sm:text-3xl">Configuración</h1>
         </div>
         <p className="text-gray-600">Configura las opciones de tu plataforma de gestión de citas</p>
       </div>
 
       <div className="space-y-6">
-        {/* Email de Notificaciones */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        {/* Canales de Notificación */}
+        <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
           <div className="flex items-center mb-4">
             <Mail className="h-5 w-5 text-blue-600 mr-2" />
-            <h2 className="text-xl text-gray-900">Email de Notificaciones</h2>
+            <h2 className="text-xl text-gray-900">Canales de Notificación</h2>
           </div>
 
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div>
-              <Label>Email Principal</Label>
-              <p className="text-sm text-gray-500 mb-2">
-                Este correo será usado como remitente para enviar notificaciones
-              </p>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="notificaciones@ejemplo.com"
-                required
-                className="max-w-md"
-              />
+          <form onSubmit={handleNotificationSubmit} className="space-y-6">
+            <div className="rounded-lg border border-gray-200 p-4">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg text-gray-900">Email</h3>
+                  <p className="text-sm text-gray-500">
+                    Datos requeridos para enviar recordatorios de citas por correo electrónico.
+                  </p>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={notificationSettings.emailEnabled}
+                    onChange={(e) => updateNotificationSetting('emailEnabled', e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  Activo
+                </label>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Email remitente *</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="notificaciones@ejemplo.com"
+                    required={notificationSettings.emailEnabled}
+                  />
+                </div>
+                <div>
+                  <Label>Nombre remitente</Label>
+                  <Input
+                    value={notificationSettings.emailFromName}
+                    onChange={(e) => updateNotificationSetting('emailFromName', e.target.value)}
+                    placeholder="Nombre de tu negocio"
+                  />
+                </div>
+                <div>
+                  <Label>Servidor SMTP</Label>
+                  <Input
+                    value={notificationSettings.smtpHost}
+                    onChange={(e) => updateNotificationSetting('smtpHost', e.target.value)}
+                    placeholder="smtp.gmail.com"
+                  />
+                </div>
+                <div>
+                  <Label>Puerto SMTP</Label>
+                  <Input
+                    value={notificationSettings.smtpPort}
+                    onChange={(e) => updateNotificationSetting('smtpPort', e.target.value)}
+                    placeholder="587"
+                    inputMode="numeric"
+                  />
+                </div>
+                <div>
+                  <Label>Usuario SMTP</Label>
+                  <Input
+                    value={notificationSettings.smtpUser}
+                    onChange={(e) => updateNotificationSetting('smtpUser', e.target.value)}
+                    placeholder="usuario@ejemplo.com"
+                  />
+                </div>
+                <div>
+                  <Label>Contraseña o app password SMTP</Label>
+                  <Input
+                    type="password"
+                    value={notificationSettings.smtpPassword}
+                    onChange={(e) => updateNotificationSetting('smtpPassword', e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 p-4">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-green-600" />
+                    <h3 className="text-lg text-gray-900">WhatsApp Business</h3>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Este será el número y las credenciales usadas para enviar notificaciones por WhatsApp.
+                  </p>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={notificationSettings.whatsappEnabled}
+                    onChange={(e) => updateNotificationSetting('whatsappEnabled', e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  Activo
+                </label>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Número de WhatsApp Business *</Label>
+                  <Input
+                    value={notificationSettings.whatsappBusinessPhone}
+                    onChange={(e) => updateNotificationSetting('whatsappBusinessPhone', e.target.value)}
+                    placeholder="+18095551234"
+                    required={notificationSettings.whatsappEnabled}
+                  />
+                </div>
+                <div>
+                  <Label>ID del número telefónico</Label>
+                  <Input
+                    value={notificationSettings.whatsappPhoneNumberId}
+                    onChange={(e) => updateNotificationSetting('whatsappPhoneNumberId', e.target.value)}
+                    placeholder="Phone Number ID de Meta"
+                  />
+                </div>
+                <div>
+                  <Label>ID de WhatsApp Business Account</Label>
+                  <Input
+                    value={notificationSettings.whatsappBusinessAccountId}
+                    onChange={(e) => updateNotificationSetting('whatsappBusinessAccountId', e.target.value)}
+                    placeholder="Business Account ID"
+                  />
+                </div>
+                <div>
+                  <Label>Token de verificación webhook</Label>
+                  <Input
+                    value={notificationSettings.whatsappWebhookVerifyToken}
+                    onChange={(e) => updateNotificationSetting('whatsappWebhookVerifyToken', e.target.value)}
+                    placeholder="Token para validar webhooks"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Access Token de Meta</Label>
+                  <Input
+                    type="password"
+                    value={notificationSettings.whatsappAccessToken}
+                    onChange={(e) => updateNotificationSetting('whatsappAccessToken', e.target.value)}
+                    placeholder="Token permanente o temporal de WhatsApp Cloud API"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
-              <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700">
+              <Button type="submit" disabled={isSaving} className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Guardando...' : 'Guardar Email'}
+                {isSaving ? 'Guardando...' : 'Guardar Notificaciones'}
               </Button>
             </div>
           </form>

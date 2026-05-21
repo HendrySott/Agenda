@@ -27,7 +27,7 @@ export function BusinessInfo({ businessInfo, onUpdate }: BusinessInfoProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
       <div className="flex items-center mb-4">
         <Building2 className="h-5 w-5 text-blue-600 mr-2" />
         <h2 className="text-xl text-gray-900">Información del Negocio</h2>
@@ -80,7 +80,7 @@ export function BusinessInfo({ businessInfo, onUpdate }: BusinessInfoProps) {
         </div>
 
         <div className="pt-4 border-t border-gray-200">
-          <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700">
+          <Button type="submit" disabled={isSaving} className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? 'Guardando...' : 'Guardar Información'}
           </Button>

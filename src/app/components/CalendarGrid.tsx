@@ -37,26 +37,26 @@ export function CalendarGrid({
     const currentDay = new Date(currentWeek).getDay();
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="grid grid-cols-2 border-b border-gray-200">
-          <div className="p-4 bg-gray-50">
-            <h2 className="text-lg text-gray-900">{days[currentDay]}</h2>
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="grid grid-cols-[7rem_minmax(0,1fr)] border-b border-gray-200 sm:grid-cols-2">
+          <div className="bg-gray-50 p-3 sm:p-4">
+            <h2 className="text-base text-gray-900 sm:text-lg">{days[currentDay]}</h2>
           </div>
-          <div className="p-4 bg-gray-50">
+          <div className="bg-gray-50 p-3 sm:p-4">
             <h3 className="text-sm text-gray-600">Citas</h3>
           </div>
         </div>
 
-        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <div className="max-h-[70vh] overflow-y-auto lg:max-h-[calc(100vh-12rem)]">
           {hours.map((hour) => {
             const slotAppointments = getAppointmentsForSlot(currentDay, hour);
 
             return (
-              <div key={hour} className="grid grid-cols-2 border-b border-gray-100 min-h-[4rem]">
-                <div className="p-3 bg-gray-50 border-r border-gray-200 flex items-center">
+              <div key={hour} className="grid min-h-[4rem] grid-cols-[7rem_minmax(0,1fr)] border-b border-gray-100 sm:grid-cols-2">
+                <div className="flex items-center border-r border-gray-200 bg-gray-50 p-3">
                   <span className="text-sm text-gray-600">{formatHour(hour)}</span>
                 </div>
-                <div className="p-2 flex flex-col space-y-1">
+                <div className="flex min-w-0 flex-col space-y-1 p-2">
                   {slotAppointments.map((appointment) => (
                     <AppointmentCard
                       key={appointment.id}
@@ -75,46 +75,50 @@ export function CalendarGrid({
 
   // Weekly view
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* Day headers */}
-      <div className="grid grid-cols-8 border-b border-gray-200">
-        <div className="p-4 bg-gray-50 border-r border-gray-200">
-          <span className="text-sm text-gray-600">Hora</span>
-        </div>
-        {days.map((day, index) => (
-          <div key={day} className="p-4 bg-gray-50 border-r border-gray-200 last:border-r-0">
-            <h3 className="text-sm text-gray-900">{day}</h3>
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar grid */}
-      <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
-        {hours.map((hour) => (
-          <div key={hour} className="grid grid-cols-8 border-b border-gray-100 min-h-[4rem]">
-            <div className="p-3 bg-gray-50 border-r border-gray-200 flex items-center">
-              <span className="text-sm text-gray-600">{formatHour(hour)}</span>
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <div className="min-w-[760px]">
+          {/* Day headers */}
+          <div className="grid grid-cols-8 border-b border-gray-200">
+            <div className="border-r border-gray-200 bg-gray-50 p-3 sm:p-4">
+              <span className="text-sm text-gray-600">Hora</span>
             </div>
-            {days.map((_, dayIndex) => {
-              const slotAppointments = getAppointmentsForSlot(dayIndex, hour);
-
-              return (
-                <div
-                  key={dayIndex}
-                  className="p-2 border-r border-gray-200 last:border-r-0 min-h-[4rem] flex flex-col space-y-1"
-                >
-                  {slotAppointments.map((appointment) => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment}
-                      onClick={() => onAppointmentClick(appointment)}
-                    />
-                  ))}
-                </div>
-              );
-            })}
+            {days.map((day) => (
+              <div key={day} className="border-r border-gray-200 bg-gray-50 p-3 last:border-r-0 sm:p-4">
+                <h3 className="text-sm text-gray-900">{day}</h3>
+              </div>
+            ))}
           </div>
-        ))}
+
+          {/* Calendar grid */}
+          <div className="max-h-[70vh] overflow-y-auto lg:max-h-[calc(100vh-12rem)]">
+            {hours.map((hour) => (
+              <div key={hour} className="grid min-h-[4rem] grid-cols-8 border-b border-gray-100">
+                <div className="flex items-center border-r border-gray-200 bg-gray-50 p-3">
+                  <span className="text-sm text-gray-600">{formatHour(hour)}</span>
+                </div>
+                {days.map((_, dayIndex) => {
+                  const slotAppointments = getAppointmentsForSlot(dayIndex, hour);
+
+                  return (
+                    <div
+                      key={dayIndex}
+                      className="flex min-h-[4rem] min-w-0 flex-col space-y-1 border-r border-gray-200 p-2 last:border-r-0"
+                    >
+                      {slotAppointments.map((appointment) => (
+                        <AppointmentCard
+                          key={appointment.id}
+                          appointment={appointment}
+                          onClick={() => onAppointmentClick(appointment)}
+                        />
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

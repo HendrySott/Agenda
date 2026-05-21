@@ -4,6 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { AppFooter } from '@/components/AppFooter';
+import authBackground from '../../assets/images/image1.jpg';
 
 export function RegisterPage() {
   const [form, setForm] = useState({ name: '', lastName: '', companyName: '', email: '', password: '' });
@@ -31,8 +33,12 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+    <div
+      className="relative flex min-h-screen items-center justify-center bg-cover bg-center px-4 pb-20 pt-8"
+      style={{ backgroundImage: `url(${authBackground})` }}
+    >
+      <div className="absolute inset-0 bg-black/45" />
+      <Card className="relative w-full max-w-md bg-white/95 shadow-2xl backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
           <CardDescription>Registra tu negocio para comenzar</CardDescription>
@@ -42,7 +48,7 @@ export function RegisterPage() {
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1">Nombre</label>
                 <Input name="name" value={form.name} onChange={handleChange} placeholder="Juan" required />
@@ -76,6 +82,7 @@ export function RegisterPage() {
           </form>
         </CardContent>
       </Card>
+      <AppFooter className="absolute bottom-4 left-0 right-0 px-4" variant="dark" />
     </div>
   );
 }

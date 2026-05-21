@@ -5,6 +5,36 @@ import { generateToken, authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
+const publicUserSelect = `
+  id, name, lastName, companyName, email, image, parentUserId, isActive, createdAt
+`;
+
+function toPublicUser(user) {
+  if (!user) return null;
+  const accountOwnerId = user.parentUserId || user.id;
+  return {
+    id: user.id,
+    name: user.name,
+    lastName: user.lastName,
+    companyName: user.companyName,
+    email: user.email,
+    image: user.image,
+    parentUserId: user.parentUserId,
+    accountOwnerId,
+    isActive: !!user.isActive,
+    isMainAccount: user.id === accountOwnerId,
+    createdAt: user.createdAt,
+  };
+}
+
+function requireMainAccount(req, res) {
+  if (!req.user.isMainAccount) {
+    res.status(403).json({ error: 'Solo la cuenta principal puede administrar usuarios' });
+    return false;
+  }
+  return true;
+}
+
 router.post('/register', (req, res) => {
   const { name, lastName, companyName, email, password } = req.body;
 
@@ -25,10 +55,10 @@ router.post('/register', (req, res) => {
   const userId = result.lastInsertRowid;
   db.prepare('INSERT INTO config (userId) VALUES (?)').run(userId);
 
-  const user = { id: userId, name, lastName, companyName, email, image: null };
+  const user = { id: userId, name, lastName, companyName, email, image: null, parentUserId: null, isActive: 1 };
   const token = generateToken(user);
 
-  res.status(201).json({ user, token });
+  res.status(201).json({ user: toPublicUser(user), token });
 });
 
 router.post('/login', (req, res) => {
@@ -43,15 +73,18 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Email o contraseña inválidos' });
   }
 
+  if (!user.isActive) {
+    return res.status(403).json({ error: 'Usuario deshabilitado' });
+  }
+
   const valid = bcrypt.compareSync(password, user.password);
   if (!valid) {
     return res.status(401).json({ error: 'Email o contraseña inválidos' });
   }
 
   const token = generateToken(user);
-  const { password: _, ...safeUser } = user;
 
-  res.json({ user: safeUser, token });
+  res.json({ user: toPublicUser(user), token });
 });
 
 router.put('/account', authMiddleware, (req, res) => {
@@ -86,10 +119,10 @@ router.put('/account', authMiddleware, (req, res) => {
     db.prepare(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`).run(...updateValues);
   }
 
-  const updated = db.prepare('SELECT id, name, lastName, companyName, email, image, createdAt FROM users WHERE id = ?').get(req.user.id);
+  const updated = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(req.user.id);
   const token = generateToken(updated);
 
-  res.json({ user: updated, token });
+  res.json({ user: toPublicUser(updated), token });
 });
 
 router.put('/avatar', authMiddleware, (req, res) => {
@@ -98,9 +131,78 @@ router.put('/avatar', authMiddleware, (req, res) => {
     return res.status(400).json({ error: 'Imagen inválida' });
   }
   db.prepare('UPDATE users SET image = ? WHERE id = ?').run(image, req.user.id);
-  const user = db.prepare('SELECT id, name, lastName, companyName, email, image, createdAt FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(req.user.id);
   const token = generateToken(user);
-  res.json({ user, token });
+  res.json({ user: toPublicUser(user), token });
+});
+
+router.get('/users', authMiddleware, (req, res) => {
+  if (!requireMainAccount(req, res)) return;
+
+  const users = db.prepare(`
+    SELECT ${publicUserSelect}
+    FROM users
+    WHERE parentUserId = ?
+    ORDER BY isActive DESC, name COLLATE NOCASE, lastName COLLATE NOCASE
+  `).all(req.user.accountOwnerId);
+
+  res.json(users.map(toPublicUser));
+});
+
+router.post('/users', authMiddleware, (req, res) => {
+  if (!requireMainAccount(req, res)) return;
+
+  const { name, lastName, email } = req.body;
+  if (!name || !lastName || !email) {
+    return res.status(400).json({ error: 'Nombre, apellido y email son obligatorios' });
+  }
+
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  if (existing) {
+    return res.status(409).json({ error: 'El email ya está registrado' });
+  }
+
+  const owner = db.prepare('SELECT id, companyName FROM users WHERE id = ?').get(req.user.accountOwnerId);
+  if (!owner) {
+    return res.status(404).json({ error: 'Cuenta principal no encontrada' });
+  }
+
+  const defaultPassword = `123${owner.companyName}`;
+  const result = db.prepare(`
+    INSERT INTO users (name, lastName, companyName, email, password, parentUserId, isActive)
+    VALUES (?, ?, ?, ?, ?, ?, 1)
+  `).run(name, lastName, owner.companyName, email, bcrypt.hashSync(defaultPassword, 10), owner.id);
+
+  const user = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(result.lastInsertRowid);
+  res.status(201).json({ user: toPublicUser(user), defaultPassword });
+});
+
+router.put('/users/:id/status', authMiddleware, (req, res) => {
+  if (!requireMainAccount(req, res)) return;
+
+  const { isActive } = req.body;
+  const user = db.prepare('SELECT id FROM users WHERE id = ? AND parentUserId = ?').get(req.params.id, req.user.accountOwnerId);
+  if (!user) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
+  }
+
+  db.prepare('UPDATE users SET isActive = ? WHERE id = ? AND parentUserId = ?')
+    .run(isActive ? 1 : 0, req.params.id, req.user.accountOwnerId);
+
+  const updated = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(req.params.id);
+  res.json(toPublicUser(updated));
+});
+
+router.delete('/users/:id', authMiddleware, (req, res) => {
+  if (!requireMainAccount(req, res)) return;
+
+  const user = db.prepare('SELECT id FROM users WHERE id = ? AND parentUserId = ?').get(req.params.id, req.user.accountOwnerId);
+  if (!user) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
+  }
+
+  db.prepare('DELETE FROM users WHERE id = ? AND parentUserId = ?').run(req.params.id, req.user.accountOwnerId);
+  res.json({ success: true });
 });
 
 router.get('/me', async (req, res) => {
@@ -113,9 +215,10 @@ router.get('/me', async (req, res) => {
     const JWT_SECRET = process.env.JWT_SECRET || 'schedule-dashboard-secret-key-change-in-production';
     const { default: jwt } = await import('jsonwebtoken');
     const decoded = jwt.verify(header.split(' ')[1], JWT_SECRET);
-    const user = db.prepare('SELECT id, name, lastName, companyName, email, image, createdAt FROM users WHERE id = ?').get(decoded.id);
+    const user = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(decoded.id);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-    res.json({ user });
+    if (!user.isActive) return res.status(403).json({ error: 'Usuario deshabilitado' });
+    res.json({ user: toPublicUser(user) });
   } catch {
     res.status(401).json({ error: 'Token inválido' });
   }

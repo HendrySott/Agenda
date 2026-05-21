@@ -90,13 +90,13 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-3 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Clientes</h1>
+          <h1 className="mb-2 text-2xl text-gray-900 sm:text-3xl">Clientes</h1>
           <p className="text-gray-600">Gestiona tu cartera de clientes</p>
         </div>
-        <Button onClick={() => handleOpenModal()} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => handleOpenModal()} className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Agregar Cliente
         </Button>
@@ -104,7 +104,7 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-[860px] w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Cliente</th>
@@ -120,7 +120,7 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
                 <tr key={client.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className={`w-10 h-10 ${getEmployeeColor(client.employeeId)} rounded-full flex items-center justify-center mr-3`}>
+                      <div className={`mr-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${getEmployeeColor(client.employeeId)}`}>
                         <User className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -184,7 +184,7 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingClient ? 'Editar Cliente' : 'Agregar Nuevo Cliente'}
@@ -192,7 +192,7 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Nombre *</Label>
                 <Input
@@ -224,7 +224,7 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Teléfono *</Label>
                 <Input
@@ -277,7 +277,7 @@ export function ClientsPage({ clients, employees, onAddClient, onUpdateClient, o
               />
             </div>
 
-            <div className="flex space-x-2 pt-4 border-t">
+            <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
               <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1">
                 Cancelar
               </Button>

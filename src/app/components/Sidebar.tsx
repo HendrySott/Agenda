@@ -61,8 +61,8 @@ export function Sidebar({
     : employees.find(e => e.id === selectedEmployee);
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200 space-y-3">
+    <div className="flex w-full shrink-0 flex-col border-b border-gray-200 bg-white lg:w-80 lg:border-b-0 lg:border-r">
+      <div className="space-y-3 border-b border-gray-200 p-3 sm:p-4">
         <div>
           <label className="text-xs text-gray-500 uppercase tracking-wide mb-1.5 block">
             Filtrar por Empleado
@@ -140,17 +140,17 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
+      <div className="max-h-[18rem] flex-1 overflow-y-auto lg:max-h-none">
+        <div className="p-3 sm:p-4">
           <h3 className="text-sm text-gray-500 uppercase tracking-wide mb-3">
             {selectedEmployee === 'all' ? `Empleados (${employees.length})` : 'Empleado Seleccionado'}
           </h3>
 
-          <div className="space-y-2">
+          <div className="grid gap-2 sm:grid-cols-2 lg:block lg:space-y-2">
             {(selectedEmployee === 'all' ? employees : employees.filter(e => e.id === selectedEmployee)).map((employee) => (
               <div
                 key={employee.id}
-                className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
               >
                 <div className="flex items-center space-x-3 flex-1">
                   <div className="relative">
@@ -178,7 +178,7 @@ export function Sidebar({
         </div>
 
         {showAddClientButton && selectedEmployee !== 'all' && (
-          <div className="p-4 border-t border-gray-200">
+          <div className="border-t border-gray-200 p-3 sm:p-4">
             <h3 className="text-sm text-gray-500 uppercase tracking-wide mb-3">
               Clientes Asignados ({clients.length})
             </h3>
@@ -197,7 +197,7 @@ export function Sidebar({
           </div>
         )}
 
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <div className="border-t border-gray-200 bg-gray-50 p-3 sm:p-4">
           <div className="space-y-2">
             <h4 className="text-xs text-gray-500 uppercase tracking-wide">
               Leyenda de Estado

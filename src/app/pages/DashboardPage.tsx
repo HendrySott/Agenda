@@ -75,7 +75,7 @@ export function DashboardPage({
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex min-h-full flex-col lg:flex-row">
       <Sidebar
         employees={filteredEmployees}
         clients={filteredClients}
@@ -88,7 +88,7 @@ export function DashboardPage({
         showAddClientButton={selectedEmployee !== 'all'}
       />
 
-      <div className="flex-1 p-6">
+      <div className="min-w-0 flex-1 p-3 sm:p-4 lg:p-6">
         <CalendarGrid
           appointments={filteredAppointments}
           viewMode={viewMode}

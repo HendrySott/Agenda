@@ -6,10 +6,13 @@ import { DashboardPage } from './pages/DashboardPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { ConfigPage } from './pages/ConfigPage';
+import { AccountPage } from './pages/AccountPage';
+import { AboutPage } from './pages/AboutPage';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AddAppointmentModal } from './components/AddAppointmentModal';
+import { AppFooter } from './components/AppFooter';
 import { Employee, Client, Appointment, Config } from './types';
 import * as api from './services/api';
 
@@ -107,7 +110,7 @@ function DashboardApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -115,10 +118,11 @@ function DashboardApp() {
         setCurrentWeek={setCurrentWeek}
         onAddAppointment={() => setIsAddModalOpen(true)}
         userName={user?.name}
+        companyName={config?.businessInfo?.name}
         onLogout={logout}
       />
 
-      <div className="h-[calc(100vh-8.5rem)]">
+      <div className="flex-1 min-h-0">
         <Routes>
           <Route path="/" element={
             <DashboardPage
@@ -127,6 +131,20 @@ function DashboardApp() {
               clients={clients}
               config={config || {
                 notificationEmail: '',
+                notificationSettings: {
+                  emailEnabled: true,
+                  emailFromName: '',
+                  smtpHost: '',
+                  smtpPort: '',
+                  smtpUser: '',
+                  smtpPassword: '',
+                  whatsappEnabled: false,
+                  whatsappBusinessPhone: '',
+                  whatsappPhoneNumberId: '',
+                  whatsappBusinessAccountId: '',
+                  whatsappAccessToken: '',
+                  whatsappWebhookVerifyToken: '',
+                },
                 emailTemplates: [],
                 businessInfo: { name: '', address: '', businessHours: '', rnc: '' },
                 calendarSync: { googleConnected: false, outlookConnected: false },
@@ -162,6 +180,20 @@ function DashboardApp() {
             <ConfigPage
               config={config || {
                 notificationEmail: '',
+                notificationSettings: {
+                  emailEnabled: true,
+                  emailFromName: '',
+                  smtpHost: '',
+                  smtpPort: '',
+                  smtpUser: '',
+                  smtpPassword: '',
+                  whatsappEnabled: false,
+                  whatsappBusinessPhone: '',
+                  whatsappPhoneNumberId: '',
+                  whatsappBusinessAccountId: '',
+                  whatsappAccessToken: '',
+                  whatsappWebhookVerifyToken: '',
+                },
                 emailTemplates: [],
                 businessInfo: { name: '', address: '', businessHours: '', rnc: '' },
                 calendarSync: { googleConnected: false, outlookConnected: false },
@@ -169,8 +201,13 @@ function DashboardApp() {
               onUpdateConfig={handleUpdateConfig}
             />
           } />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+
+      <AppFooter className="border-t border-gray-200 bg-white px-4 py-4" />
 
       {isDashboard && isAddModalOpen && (
         <AddAppointmentModal
@@ -179,6 +216,20 @@ function DashboardApp() {
           isOpen={isAddModalOpen}
           config={config || {
             notificationEmail: '',
+            notificationSettings: {
+              emailEnabled: true,
+              emailFromName: '',
+              smtpHost: '',
+              smtpPort: '',
+              smtpUser: '',
+              smtpPassword: '',
+              whatsappEnabled: false,
+              whatsappBusinessPhone: '',
+              whatsappPhoneNumberId: '',
+              whatsappBusinessAccountId: '',
+              whatsappAccessToken: '',
+              whatsappWebhookVerifyToken: '',
+            },
             emailTemplates: [],
             businessInfo: { name: '', address: '', businessHours: '', rnc: '' },
             calendarSync: { googleConnected: false, outlookConnected: false },

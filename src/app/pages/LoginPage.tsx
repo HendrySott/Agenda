@@ -4,6 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { AppFooter } from '@/components/AppFooter';
+import authBackground from '../../assets/images/image1.jpg';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -28,8 +30,12 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+    <div
+      className="relative flex min-h-screen items-center justify-center bg-cover bg-center px-4 pb-20 pt-8"
+      style={{ backgroundImage: `url(${authBackground})` }}
+    >
+      <div className="absolute inset-0 bg-black/45" />
+      <Card className="relative w-full max-w-md bg-white/95 shadow-2xl backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
           <CardDescription>Ingresa tus credenciales para acceder al panel</CardDescription>
@@ -71,6 +77,7 @@ export function LoginPage() {
           </form>
         </CardContent>
       </Card>
+      <AppFooter className="absolute bottom-4 left-0 right-0 px-4" variant="dark" />
     </div>
   );
 }

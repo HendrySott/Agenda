@@ -82,13 +82,13 @@ export function EmailTemplates({ templates, onAddTemplate, onUpdateTemplate, onD
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center">
           <Mail className="h-5 w-5 text-blue-600 mr-2" />
           <h2 className="text-xl text-gray-900">Plantillas de Email</h2>
         </div>
-        <Button onClick={() => handleOpenModal()} size="sm" className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => handleOpenModal()} size="sm" className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Nueva Plantilla
         </Button>
@@ -110,11 +110,11 @@ export function EmailTemplates({ templates, onAddTemplate, onUpdateTemplate, onD
           </div>
         ) : (
           templates.map(template => (
-            <div key={template.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="text-gray-900">{template.name}</h3>
+            <div key={template.id} className="rounded-lg border border-gray-200 p-4 transition-colors hover:border-blue-300">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <h3 className="truncate text-gray-900">{template.name}</h3>
                     {template.isActive ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
                         Activa
@@ -125,14 +125,14 @@ export function EmailTemplates({ templates, onAddTemplate, onUpdateTemplate, onD
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="mb-2 break-words text-sm text-gray-600">
                     <strong>Asunto:</strong> {template.subject}
                   </p>
                   <p className="text-xs text-blue-600">
                     {getTriggerTypeLabel(template.triggerType)}
                   </p>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 self-end sm:self-start">
                   <Button size="sm" variant="outline" onClick={() => handleOpenModal(template)}>
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -146,7 +146,7 @@ export function EmailTemplates({ templates, onAddTemplate, onUpdateTemplate, onD
         )}
       </div>
 
-      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start">
           <AlertCircle className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-900">
@@ -166,7 +166,7 @@ export function EmailTemplates({ templates, onAddTemplate, onUpdateTemplate, onD
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTemplate ? 'Editar Plantilla' : 'Nueva Plantilla de Email'}
@@ -238,7 +238,7 @@ export function EmailTemplates({ templates, onAddTemplate, onUpdateTemplate, onD
               </Label>
             </div>
 
-            <div className="flex space-x-2 pt-4 border-t">
+            <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
               <Button type="button" onClick={() => setIsModalOpen(false)} variant="outline" className="flex-1">
                 Cancelar
               </Button>

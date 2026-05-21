@@ -6,7 +6,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
-import { Plus, Mail } from 'lucide-react';
+import { Plus, Mail, MessageCircle } from 'lucide-react';
 import { Employee, Client, Appointment, Config } from '../types';
 
 interface AddAppointmentModalProps {
@@ -27,7 +27,8 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
     endHour: '',
     notes: '',
     zoomLink: '',
-    sendNotification: true
+    sendEmailNotification: true,
+    sendWhatsappNotification: true
   });
 
   const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -60,11 +61,20 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
     const employee = employees.find(e => e.id === parseInt(newAppointment.employeeId));
     const client = clients.find(c => c.id === parseInt(newAppointment.clientId));
 
-    if (newAppointment.sendNotification && config.notificationEmail) {
-      // Simulate sending email notification
+    if (newAppointment.sendEmailNotification && config.notificationSettings.emailEnabled && config.notificationEmail) {
       console.log(`📧 Enviando notificación a: ${config.notificationEmail}`);
       console.log(`Nueva cita: ${employee?.name} ${employee?.lastName} con ${client?.name} ${client?.lastName}`);
-      alert(`✓ Notificación enviada a ${config.notificationEmail}`);
+      alert(`✓ Notificación por email preparada para ${config.notificationEmail}`);
+    }
+
+    if (
+      newAppointment.sendWhatsappNotification &&
+      config.notificationSettings.whatsappEnabled &&
+      config.notificationSettings.whatsappBusinessPhone
+    ) {
+      console.log(`💬 Enviando WhatsApp desde: ${config.notificationSettings.whatsappBusinessPhone}`);
+      console.log(`Nueva cita: ${employee?.name} ${employee?.lastName} con ${client?.name} ${client?.lastName}`);
+      alert(`✓ Notificación por WhatsApp preparada desde ${config.notificationSettings.whatsappBusinessPhone}`);
     }
 
     onAdd({
@@ -88,7 +98,8 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
       endHour: '',
       notes: '',
       zoomLink: '',
-      sendNotification: true
+      sendEmailNotification: true,
+      sendWhatsappNotification: true
     });
 
     onClose();
@@ -103,14 +114,15 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
       endHour: '',
       notes: '',
       zoomLink: '',
-      sendNotification: true
+      sendEmailNotification: true,
+      sendWhatsappNotification: true
     });
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Plus className="h-5 w-5" />
@@ -190,7 +202,7 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Hora de Inicio *</Label>
               <Select
@@ -261,24 +273,43 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
             />
           </div>
 
-          {config.notificationEmail && (
+          {config.notificationSettings.emailEnabled && config.notificationEmail && (
             <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <Checkbox
-                id="sendNotification"
-                checked={newAppointment.sendNotification}
+                id="sendEmailNotification"
+                checked={newAppointment.sendEmailNotification}
                 onCheckedChange={(checked) => setNewAppointment({
                   ...newAppointment,
-                  sendNotification: !!checked
+                  sendEmailNotification: !!checked
                 })}
               />
-              <label htmlFor="sendNotification" className="flex items-center space-x-2 text-sm cursor-pointer flex-1">
+              <label htmlFor="sendEmailNotification" className="flex items-center space-x-2 text-sm cursor-pointer flex-1">
                 <Mail className="h-4 w-4 text-blue-600" />
                 <span className="text-blue-900">Enviar notificación por email a {config.notificationEmail}</span>
               </label>
             </div>
           )}
 
-          <div className="flex space-x-2 pt-4 border-t">
+          {config.notificationSettings.whatsappEnabled && config.notificationSettings.whatsappBusinessPhone && (
+            <div className="flex items-center space-x-2 rounded-lg border border-green-200 bg-green-50 p-3">
+              <Checkbox
+                id="sendWhatsappNotification"
+                checked={newAppointment.sendWhatsappNotification}
+                onCheckedChange={(checked) => setNewAppointment({
+                  ...newAppointment,
+                  sendWhatsappNotification: !!checked
+                })}
+              />
+              <label htmlFor="sendWhatsappNotification" className="flex flex-1 cursor-pointer items-center space-x-2 text-sm">
+                <MessageCircle className="h-4 w-4 text-green-600" />
+                <span className="text-green-900">
+                  Enviar notificación por WhatsApp desde {config.notificationSettings.whatsappBusinessPhone}
+                </span>
+              </label>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
             <Button type="button" onClick={handleCancel} variant="outline" className="flex-1">
               Cancelar
             </Button>

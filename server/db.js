@@ -18,8 +18,11 @@ db.exec(`
     companyName TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
+    parentUserId INTEGER,
+    isActive INTEGER DEFAULT 1,
     image TEXT,
-    createdAt TEXT DEFAULT (datetime('now'))
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (parentUserId) REFERENCES users(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS employees (
@@ -70,6 +73,18 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS config (
     userId INTEGER PRIMARY KEY,
     notificationEmail TEXT,
+    emailEnabled INTEGER DEFAULT 1,
+    emailFromName TEXT,
+    smtpHost TEXT,
+    smtpPort TEXT,
+    smtpUser TEXT,
+    smtpPassword TEXT,
+    whatsappEnabled INTEGER DEFAULT 0,
+    whatsappBusinessPhone TEXT,
+    whatsappPhoneNumberId TEXT,
+    whatsappBusinessAccountId TEXT,
+    whatsappAccessToken TEXT,
+    whatsappWebhookVerifyToken TEXT,
     businessName TEXT,
     businessAddress TEXT,
     businessHours TEXT,
@@ -92,5 +107,38 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 `);
+
+const userColumns = db.prepare('PRAGMA table_info(users)').all().map(column => column.name);
+
+if (!userColumns.includes('parentUserId')) {
+  db.exec('ALTER TABLE users ADD COLUMN parentUserId INTEGER REFERENCES users(id) ON DELETE CASCADE');
+}
+
+if (!userColumns.includes('isActive')) {
+  db.exec('ALTER TABLE users ADD COLUMN isActive INTEGER DEFAULT 1');
+  db.prepare('UPDATE users SET isActive = 1 WHERE isActive IS NULL').run();
+}
+
+const configColumns = db.prepare('PRAGMA table_info(config)').all().map(column => column.name);
+const configMigrations = [
+  ['emailEnabled', 'ALTER TABLE config ADD COLUMN emailEnabled INTEGER DEFAULT 1'],
+  ['emailFromName', 'ALTER TABLE config ADD COLUMN emailFromName TEXT'],
+  ['smtpHost', 'ALTER TABLE config ADD COLUMN smtpHost TEXT'],
+  ['smtpPort', 'ALTER TABLE config ADD COLUMN smtpPort TEXT'],
+  ['smtpUser', 'ALTER TABLE config ADD COLUMN smtpUser TEXT'],
+  ['smtpPassword', 'ALTER TABLE config ADD COLUMN smtpPassword TEXT'],
+  ['whatsappEnabled', 'ALTER TABLE config ADD COLUMN whatsappEnabled INTEGER DEFAULT 0'],
+  ['whatsappBusinessPhone', 'ALTER TABLE config ADD COLUMN whatsappBusinessPhone TEXT'],
+  ['whatsappPhoneNumberId', 'ALTER TABLE config ADD COLUMN whatsappPhoneNumberId TEXT'],
+  ['whatsappBusinessAccountId', 'ALTER TABLE config ADD COLUMN whatsappBusinessAccountId TEXT'],
+  ['whatsappAccessToken', 'ALTER TABLE config ADD COLUMN whatsappAccessToken TEXT'],
+  ['whatsappWebhookVerifyToken', 'ALTER TABLE config ADD COLUMN whatsappWebhookVerifyToken TEXT'],
+];
+
+for (const [column, statement] of configMigrations) {
+  if (!configColumns.includes(column)) {
+    db.exec(statement);
+  }
+}
 
 export default db;

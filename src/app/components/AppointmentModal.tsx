@@ -69,7 +69,7 @@ export function AppointmentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Calendar className="h-5 w-5" />
@@ -141,7 +141,7 @@ export function AppointmentModal({
                 )}
               </div>
 
-              <div className="flex space-x-2 pt-4 border-t">
+              <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
                 <Button
                   onClick={() => setIsEditing(true)}
                   variant="outline"
@@ -233,7 +233,7 @@ export function AppointmentModal({
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Hora de Inicio *</Label>
                   <Select
@@ -304,7 +304,7 @@ export function AppointmentModal({
                 />
               </div>
 
-              <div className="flex space-x-2 pt-4 border-t">
+              <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
                 <Button type="button" onClick={handleCancel} variant="outline" className="flex-1">
                   Cancelar
                 </Button>

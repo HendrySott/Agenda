@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
-import { ChevronLeft, ChevronRight, Plus, Calendar, Users, UserCircle, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Users, UserCircle, Settings, LogOut, User, ChevronDown, Info } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   setCurrentWeek: (date: Date) => void;
   onAddAppointment: () => void;
   userName?: string;
+  companyName?: string;
   onLogout?: () => void;
 }
 
@@ -20,6 +21,7 @@ export function Header({
   setCurrentWeek,
   onAddAppointment,
   userName,
+  companyName,
   onLogout,
 }: HeaderProps) {
   const location = useLocation();
@@ -64,18 +66,19 @@ export function Header({
     { path: '/', label: 'Calendario', icon: Calendar },
     { path: '/employees', label: 'Empleados', icon: Users },
     { path: '/clients', label: 'Clientes', icon: UserCircle },
-    { path: '/config', label: 'Configuración', icon: Settings }
+    { path: '/config', label: 'Configuración', icon: Settings },
+    { path: '/about', label: 'Acerca de', icon: Info }
   ];
 
   return (
     <header className="bg-white border-b border-gray-200">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-2xl text-gray-900">Horario Semanal</h1>
+      <div className="px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:justify-start lg:gap-6">
+            <h1 className="text-xl text-gray-900 sm:text-2xl">Horario Semanal</h1>
 
             {isDashboard && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -84,7 +87,7 @@ export function Header({
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                <span className="text-sm text-gray-600 min-w-[200px] text-center">
+                <span className="min-w-0 flex-1 text-center text-sm text-gray-600 sm:min-w-[200px]">
                   {formatWeekRange(currentWeek)}
                 </span>
 
@@ -99,9 +102,9 @@ export function Header({
             )}
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:justify-end">
             {isDashboard && (
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex rounded-lg bg-gray-100 p-1">
                 <Button
                   variant={viewMode === 'weekly' ? 'default' : 'ghost'}
                   size="sm"
@@ -127,18 +130,23 @@ export function Header({
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Agregar Nueva Cita
+                <span className="hidden sm:inline">Agregar Nueva Cita</span>
+                <span className="sm:hidden">Cita</span>
               </Button>
+            )}
+
+            {companyName && (
+              <span className="max-w-[11rem] truncate text-sm font-medium text-gray-700 sm:max-w-[16rem]">{companyName}</span>
             )}
 
             {userName && (
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex items-center space-x-1.5 text-sm text-gray-700 hover:text-gray-900 rounded-md px-3 py-1.5 hover:bg-gray-100 cursor-pointer"
+                  className="flex max-w-[12rem] items-center space-x-1.5 rounded-md px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 sm:max-w-none"
                 >
                   <User className="h-4 w-4" />
-                  <span>{userName}</span>
+                  <span className="truncate">{userName}</span>
                   <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {menuOpen && (
@@ -169,8 +177,8 @@ export function Header({
         </div>
       </div>
 
-      <div className="px-6 border-t border-gray-200">
-        <nav className="flex space-x-1">
+      <div className="border-t border-gray-200 px-2 sm:px-6">
+        <nav className="flex gap-1 overflow-x-auto">
           {navItems.map(item => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -178,7 +186,7 @@ export function Header({
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+                className={`flex shrink-0 items-center space-x-2 border-b-2 px-3 py-3 transition-colors sm:px-4 ${
                   isActive
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'

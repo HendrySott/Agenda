@@ -60,8 +60,24 @@ export interface CalendarSync {
   outlookEmail?: string;
 }
 
+export interface NotificationSettings {
+  emailEnabled: boolean;
+  emailFromName: string;
+  smtpHost: string;
+  smtpPort: string;
+  smtpUser: string;
+  smtpPassword: string;
+  whatsappEnabled: boolean;
+  whatsappBusinessPhone: string;
+  whatsappPhoneNumberId: string;
+  whatsappBusinessAccountId: string;
+  whatsappAccessToken: string;
+  whatsappWebhookVerifyToken: string;
+}
+
 export interface Config {
   notificationEmail: string;
+  notificationSettings: NotificationSettings;
   emailTemplates: EmailTemplate[];
   businessInfo: BusinessInfo;
   calendarSync: CalendarSync;

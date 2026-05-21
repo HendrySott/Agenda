@@ -58,6 +58,32 @@ export async function updateAvatar(image) {
   return handleResponse(res);
 }
 
+export async function getAccountUsers() {
+  const res = await fetch(`${API}/auth/users`, { headers: headers() });
+  return handleResponse(res);
+}
+
+export async function createAccountUser(data) {
+  const res = await fetch(`${API}/auth/users`, {
+    method: 'POST', headers: headers(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateAccountUserStatus(id, isActive) {
+  const res = await fetch(`${API}/auth/users/${id}/status`, {
+    method: 'PUT', headers: headers(), body: JSON.stringify({ isActive }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteAccountUser(id) {
+  const res = await fetch(`${API}/auth/users/${id}`, {
+    method: 'DELETE', headers: headers(),
+  });
+  return handleResponse(res);
+}
+
 // Employees
 export async function getEmployees() {
   const res = await fetch(`${API}/employees`, { headers: headers() });
