@@ -38,7 +38,7 @@ export function AboutPage() {
         </div>
 
         <p className="max-w-3xl text-gray-600">
-          Admone es un panel de agenda y gestión de negocio creado para ayudar a equipos de servicios a administrar
+          Admone "CONVENIR en latin" es un panel de agenda y gestión de negocio creado para ayudar a equipos de servicios a administrar
           citas, empleados, clientes, recordatorios y accesos desde un espacio práctico de trabajo.
         </p>
 

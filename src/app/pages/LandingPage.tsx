@@ -109,17 +109,10 @@ export function LandingPage() {
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6 text-base text-white shadow-lg hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
             >
-              Comenzar Gratis
+              Comenzar aqui
               <ArrowRight className="size-4" />
             </Button>
-            <Button
-              onClick={() => navigate('/login')}
-              variant="outline"
-              size="lg"
-              className="px-8 py-6 text-base border-gray-300"
-            >
-              Ver Demo
-            </Button>
+           
           </div>
         </div>
       </section>
@@ -184,20 +177,10 @@ export function LandingPage() {
               Iniciar Sesión
             </Button>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-gray-500">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-4 text-green-400" />
-              Sin tarjeta de crédito
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-4 text-green-400" />
-              Cancelación gratis
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-4 text-green-400" />
-              Soporte 24/7
-            </span>
-          </div>
+
+
+
+
         </div>
       </section>
 
