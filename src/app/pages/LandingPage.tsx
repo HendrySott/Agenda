@@ -93,7 +93,7 @@ export function LandingPage() {
             <Clock className="size-4" />
             La plataforma #1 para gestionar tu negocio
           </div>
-          <h1 className="mb-6 text-4xl font-bold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+          <h1 className="mb-6 text-4xl font-bold leading-[1.1] tracking-tight  sm:text-5xl md:text-6xl">
             Tu agenda profesional{' '}
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               en un solo lugar

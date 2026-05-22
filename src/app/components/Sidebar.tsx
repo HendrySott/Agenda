@@ -76,9 +76,17 @@ export function Sidebar({
               <div className="flex items-center space-x-2 flex-1 min-w-0">
                 {selectedEmployeeData ? (
                   <>
-                    <div className={`w-5 h-5 ${selectedEmployeeData.color} rounded-full flex items-center justify-center flex-shrink-0`}>
-                      <User className="h-3 w-3 text-white" />
-                    </div>
+                    {selectedEmployeeData.image ? (
+                      <img
+                        src={selectedEmployeeData.image}
+                        alt={`${selectedEmployeeData.name} ${selectedEmployeeData.lastName}`}
+                        className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className={`w-5 h-5 ${selectedEmployeeData.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                        <User className="h-3 w-3 text-white" />
+                      </div>
+                    )}
                     <span className="text-sm text-gray-900 truncate">
                       {selectedEmployeeData.name} {selectedEmployeeData.lastName}
                     </span>
@@ -112,9 +120,17 @@ export function Sidebar({
                     }}
                     className={`w-full flex items-center space-x-2 px-3 py-2.5 hover:bg-blue-50 transition-colors ${selectedEmployee === employee.id ? 'bg-blue-50' : ''}`}
                   >
-                    <div className={`w-6 h-6 ${employee.color} rounded-full flex items-center justify-center flex-shrink-0`}>
-                      <User className="h-3 w-3 text-white" />
-                    </div>
+                    {employee.image ? (
+                      <img
+                        src={employee.image}
+                        alt={`${employee.name} ${employee.lastName}`}
+                        className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className={`w-6 h-6 ${employee.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                        <User className="h-3 w-3 text-white" />
+                      </div>
+                    )}
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm text-gray-900 truncate">
                         {employee.name} {employee.lastName}
@@ -154,9 +170,17 @@ export function Sidebar({
               >
                 <div className="flex items-center space-x-3 flex-1">
                   <div className="relative">
-                    <div className={`w-10 h-10 ${employee.color} rounded-full flex items-center justify-center`}>
-                      <User className="h-5 w-5 text-white" />
-                    </div>
+                    {employee.image ? (
+                      <img
+                        src={employee.image}
+                        alt={`${employee.name} ${employee.lastName}`}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className={`w-10 h-10 ${employee.color} rounded-full flex items-center justify-center`}>
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                    )}
                     <div
                       className={`absolute -bottom-1 -right-1 w-4 h-4 ${getStatusColor(employee.status)} rounded-full border-2 border-white`}
                       title={getStatusText(employee.status)}

@@ -15,7 +15,10 @@ interface AddAppointmentModalProps {
   isOpen: boolean;
   config: Config;
   onClose: () => void;
-  onAdd: (appointment: Omit<Appointment, 'id' | 'color'>) => void;
+  onAdd: (appointment: Omit<Appointment, 'id' | 'color'> & {
+    sendEmailNotification: boolean;
+    sendWhatsappNotification: boolean;
+  }) => void;
 }
 
 export function AddAppointmentModal({ employees, clients, isOpen, config, onClose, onAdd }: AddAppointmentModalProps) {
@@ -61,22 +64,6 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
     const employee = employees.find(e => e.id === parseInt(newAppointment.employeeId));
     const client = clients.find(c => c.id === parseInt(newAppointment.clientId));
 
-    if (newAppointment.sendEmailNotification && config.notificationSettings.emailEnabled && config.notificationEmail) {
-      console.log(`📧 Enviando notificación a: ${config.notificationEmail}`);
-      console.log(`Nueva cita: ${employee?.name} ${employee?.lastName} con ${client?.name} ${client?.lastName}`);
-      alert(`✓ Notificación por email preparada para ${config.notificationEmail}`);
-    }
-
-    if (
-      newAppointment.sendWhatsappNotification &&
-      config.notificationSettings.whatsappEnabled &&
-      config.notificationSettings.whatsappBusinessPhone
-    ) {
-      console.log(`💬 Enviando WhatsApp desde: ${config.notificationSettings.whatsappBusinessPhone}`);
-      console.log(`Nueva cita: ${employee?.name} ${employee?.lastName} con ${client?.name} ${client?.lastName}`);
-      alert(`✓ Notificación por WhatsApp preparada desde ${config.notificationSettings.whatsappBusinessPhone}`);
-    }
-
     onAdd({
       employeeId: parseInt(newAppointment.employeeId),
       employeeName: `${employee?.name} ${employee?.lastName}` || '',
@@ -86,7 +73,9 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
       startHour: parseInt(newAppointment.startHour),
       endHour: parseInt(newAppointment.endHour),
       notes: newAppointment.notes,
-      zoomLink: newAppointment.zoomLink
+      zoomLink: newAppointment.zoomLink,
+      sendEmailNotification: newAppointment.sendEmailNotification,
+      sendWhatsappNotification: newAppointment.sendWhatsappNotification,
     });
 
     // Reset form
@@ -248,17 +237,7 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
             </div>
           </div>
 
-          <div>
-            <Label>Enlace de Zoom</Label>
-            <Input
-              value={newAppointment.zoomLink}
-              onChange={(e) => setNewAppointment({
-                ...newAppointment,
-                zoomLink: e.target.value
-              })}
-              placeholder="https://zoom.us/j/..."
-            />
-          </div>
+          
 
           <div>
             <Label>Notas</Label>
@@ -285,7 +264,7 @@ export function AddAppointmentModal({ employees, clients, isOpen, config, onClos
               />
               <label htmlFor="sendEmailNotification" className="flex items-center space-x-2 text-sm cursor-pointer flex-1">
                 <Mail className="h-4 w-4 text-blue-600" />
-                <span className="text-blue-900">Enviar notificación por email a {config.notificationEmail}</span>
+                <span className="text-blue-900">Enviar notificación por email</span>
               </label>
             </div>
           )}

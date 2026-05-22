@@ -177,3 +177,31 @@ export async function updateConfig(data) {
   });
   return handleResponse(res);
 }
+
+export async function getGoogleCalendarAuthUrl() {
+  const res = await fetch(`${API}/calendar/google/connect`, {
+    headers: headers(),
+  });
+  return handleResponse(res);
+}
+
+export async function disconnectGoogleCalendar() {
+  const res = await fetch(`${API}/calendar/google/disconnect`, {
+    method: 'POST', headers: headers(),
+  });
+  return handleResponse(res);
+}
+
+export async function getOutlookCalendarAuthUrl() {
+  const res = await fetch(`${API}/calendar/outlook/connect`, {
+    headers: headers(),
+  });
+  return handleResponse(res);
+}
+
+export async function disconnectOutlookCalendar() {
+  const res = await fetch(`${API}/calendar/outlook/disconnect`, {
+    method: 'POST', headers: headers(),
+  });
+  return handleResponse(res);
+}

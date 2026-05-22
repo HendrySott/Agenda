@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Employee } from '../types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -39,7 +39,7 @@ const COLORS = [
 export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDeleteEmployee }: EmployeesPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<Employee, 'id'>>({
     name: '',
     lastName: '',
     email: '',
@@ -47,10 +47,11 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
     address: '',
     image: '',
     schedule: '',
-    workingDays: [] as number[],
-    status: 'available' as const,
+    workingDays: [],
+    status: 'available',
     color: COLORS[0]
   });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleOpenModal = (employee?: Employee) => {
     if (employee) {
@@ -85,6 +86,21 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
     setIsModalOpen(true);
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setFormData(prev => ({ ...prev, image: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -106,6 +122,10 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
     if (confirm('¿Está seguro de eliminar este empleado?')) {
       onDeleteEmployee(id);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: '' }));
   };
 
   const toggleWorkingDay = (dayId: number) => {
@@ -258,12 +278,40 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
                 />
               </div>
               <div>
-                <Label>URL de Imagen (Opcional)</Label>
-                <Input
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://..."
-                />
+                <Label>Subir imagen local (Opcional)</Label>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Seleccionar imagen
+                    </Button>
+                    {formData.image && (
+                      <Button type="button" variant="ghost" className="text-red-600" onClick={handleRemoveImage}>
+                        Eliminar
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(file);
+                      }
+                    }}
+                  />
+                  {formData.image && (
+                    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-2">
+                      <img src={formData.image} alt="Vista previa del empleado" className="h-24 w-full object-cover" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

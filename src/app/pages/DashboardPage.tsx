@@ -11,7 +11,10 @@ interface DashboardPageProps {
   appointments: Appointment[];
   clients: Client[];
   config: Config;
-  onAddAppointment: (appointment: Omit<Appointment, 'id' | 'color'>) => void;
+  onAddAppointment: (appointment: Omit<Appointment, 'id' | 'color'> & {
+    sendEmailNotification: boolean;
+    sendWhatsappNotification: boolean;
+  }) => void;
   onUpdateAppointment: (appointment: Appointment) => void;
   onDeleteAppointment: (id: number) => void;
   onAddClient: (client: Omit<Client, 'id'>) => void;

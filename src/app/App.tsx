@@ -77,11 +77,17 @@ function DashboardApp() {
     setAppointments(prev => prev.filter(a => a.clientId !== id));
   }, []);
 
-  const handleAddAppointment = useCallback(async (appointment: Omit<Appointment, 'id' | 'color'>) => {
+  const handleAddAppointment = useCallback(async (appointment: Omit<Appointment, 'id' | 'color'> & {
+    sendEmailNotification: boolean;
+    sendWhatsappNotification: boolean;
+  }) => {
     const employee = employees.find(e => e.id === appointment.employeeId);
+    const { sendEmailNotification, sendWhatsappNotification, ...appointmentPayload } = appointment;
     const created = await api.createAppointment({
-      ...appointment,
+      ...appointmentPayload,
       color: employee?.color || 'bg-gray-500',
+      sendEmailNotification,
+      sendWhatsappNotification,
     });
     setAppointments(prev => [...prev, created]);
   }, [employees]);
@@ -118,7 +124,8 @@ function DashboardApp() {
         setCurrentWeek={setCurrentWeek}
         onAddAppointment={() => setIsAddModalOpen(true)}
         userName={user?.name}
-        companyName={config?.businessInfo?.name}
+        userAvatar={user?.image ?? undefined}
+        companyName={config?.businessInfo?.name || user?.companyName}
         onLogout={logout}
       />
 
@@ -242,7 +249,7 @@ function DashboardApp() {
   );
 }
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) {
     return (

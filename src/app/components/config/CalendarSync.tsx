@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { CalendarSync as CalendarSyncType } from '../../types';
+import * as api from '../../services/api';
 
 interface CalendarSyncProps {
   calendarSync: CalendarSyncType;
@@ -11,61 +12,55 @@ interface CalendarSyncProps {
 export function CalendarSync({ calendarSync, onUpdate }: CalendarSyncProps) {
   const [isConnecting, setIsConnecting] = useState<'google' | 'outlook' | null>(null);
 
-  const handleConnectGoogle = () => {
+  const handleConnectGoogle = async () => {
     setIsConnecting('google');
-
-    // Simular conexión con Google Calendar
-    setTimeout(() => {
-      const email = prompt('Ingrese su email de Google:');
-      if (email) {
-        onUpdate({
-          ...calendarSync,
-          googleConnected: true,
-          googleEmail: email
-        });
-        alert('✓ Google Calendar conectado correctamente');
-      }
+    try {
+      const { url } = await api.getGoogleCalendarAuthUrl();
+      window.location.href = url;
+    } catch (error) {
+      alert(`No se pudo iniciar la conexión con Google Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
       setIsConnecting(null);
-    }, 500);
-  };
-
-  const handleDisconnectGoogle = () => {
-    if (confirm('¿Está seguro de desconectar Google Calendar?')) {
-      onUpdate({
-        ...calendarSync,
-        googleConnected: false,
-        googleEmail: undefined
-      });
-      alert('Google Calendar desconectado');
     }
   };
 
-  const handleConnectOutlook = () => {
-    setIsConnecting('outlook');
-
-    // Simular conexión con Outlook Calendar
-    setTimeout(() => {
-      const email = prompt('Ingrese su email de Outlook:');
-      if (email) {
-        onUpdate({
-          ...calendarSync,
-          outlookConnected: true,
-          outlookEmail: email
-        });
-        alert('✓ Outlook Calendar conectado correctamente');
-      }
-      setIsConnecting(null);
-    }, 500);
+  const handleDisconnectGoogle = async () => {
+    if (!confirm('¿Está seguro de desconectar Google Calendar?')) return;
+    try {
+      await api.disconnectGoogleCalendar();
+      onUpdate({
+        ...calendarSync,
+        googleConnected: false,
+        googleEmail: undefined,
+      });
+      alert('Google Calendar desconectado');
+    } catch (error) {
+      alert(`No se pudo desconectar Google Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   };
 
-  const handleDisconnectOutlook = () => {
-    if (confirm('¿Está seguro de desconectar Outlook Calendar?')) {
+  const handleConnectOutlook = async () => {
+    setIsConnecting('outlook');
+    try {
+      const { url } = await api.getOutlookCalendarAuthUrl();
+      window.location.href = url;
+    } catch (error) {
+      alert(`No se pudo iniciar la conexión con Outlook Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setIsConnecting(null);
+    }
+  };
+
+  const handleDisconnectOutlook = async () => {
+    if (!confirm('¿Está seguro de desconectar Outlook Calendar?')) return;
+    try {
+      await api.disconnectOutlookCalendar();
       onUpdate({
         ...calendarSync,
         outlookConnected: false,
-        outlookEmail: undefined
+        outlookEmail: undefined,
       });
       alert('Outlook Calendar desconectado');
+    } catch (error) {
+      alert(`No se pudo desconectar Outlook Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 

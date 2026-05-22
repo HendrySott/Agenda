@@ -10,6 +10,7 @@ interface HeaderProps {
   setCurrentWeek: (date: Date) => void;
   onAddAppointment: () => void;
   userName?: string;
+  userAvatar?: string;
   companyName?: string;
   onLogout?: () => void;
 }
@@ -21,6 +22,7 @@ export function Header({
   setCurrentWeek,
   onAddAppointment,
   userName,
+  userAvatar,
   companyName,
   onLogout,
 }: HeaderProps) {
@@ -72,10 +74,65 @@ export function Header({
 
   return (
     <header className="bg-white border-b border-gray-200">
+      <div className="border-b border-gray-200 bg-slate-50 px-4 py-2 sm:px-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-gray-700">
+            <h1>{companyName ? companyName : 'Nombre de la empresa'}</h1>
+          </div>
+          
+            {userName && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex max-w-[12rem] items-center space-x-2 rounded-md px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 sm:max-w-none"
+                >
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={`${userName} avatar`}
+                      className="h-7 w-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                  <span className="truncate">{userName}</span>
+                  <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="px-3 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">{userName}</p>
+                    </div>
+                    <button
+                      onClick={() => { navigate('/account'); setMenuOpen(false); }}
+                      className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Administrar cuenta
+                    </button>
+                    <div className="border-t border-gray-100" />
+                    <button
+                      onClick={() => { onLogout?.(); setMenuOpen(false); }}
+                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+        </div>
+      </div>
       <div className="px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:justify-start lg:gap-6">
-            <h1 className="text-xl text-gray-900 sm:text-2xl">Horario Semanal</h1>
+
+               {companyName && (
+                          <h1 className="text-xl text-gray-900 sm:text-2xl">Horario Semanal</h1>
+            )}
+
+              
 
             {isDashboard && (
               <div className="flex items-center gap-2">
@@ -135,44 +192,8 @@ export function Header({
               </Button>
             )}
 
-            {companyName && (
-              <span className="max-w-[11rem] truncate text-sm font-medium text-gray-700 sm:max-w-[16rem]">{companyName}</span>
-            )}
+           
 
-            {userName && (
-              <div className="relative" ref={menuRef}>
-                <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex max-w-[12rem] items-center space-x-1.5 rounded-md px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 sm:max-w-none"
-                >
-                  <User className="h-4 w-4" />
-                  <span className="truncate">{userName}</span>
-                  <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {menuOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    <div className="px-3 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{userName}</p>
-                    </div>
-                    <button
-                      onClick={() => { navigate('/account'); setMenuOpen(false); }}
-                      className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Administrar cuenta
-                    </button>
-                    <div className="border-t border-gray-100" />
-                    <button
-                      onClick={() => { onLogout?.(); setMenuOpen(false); }}
-                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

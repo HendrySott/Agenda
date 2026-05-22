@@ -10,7 +10,7 @@ A full-stack web application for managing weekly class/appointment schedules for
 - **Appointments** — Create, reschedule, and remove appointments with employee/client assignment, notes, and Zoom links
 - **Authentication** — Register/login with JWT-based auth
 - **Business Config** — Configure business info, notification email, and email templates
-- **Calendar Sync** — Google and Outlook calendar integration stubs
+- **Calendar Sync** — Google and Outlook calendar integration with OAuth and event sync
 - **Email Templates** — Customizable email notifications triggered by appointment timing
 
 ## Tech Stack
@@ -32,6 +32,23 @@ npm run build       # build for production
 ```
 
 The Express server also serves the built frontend from `dist/` when available.
+
+### Environment variables
+
+Create a `.env` file in the project root with the OAuth credentials you want to use:
+
+```
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:3001/api/calendar/google/callback
+OUTLOOK_CLIENT_ID=your-outlook-client-id
+OUTLOOK_CLIENT_SECRET=your-outlook-client-secret
+OUTLOOK_REDIRECT_URI=http://localhost:3001/api/calendar/outlook/callback
+FRONTEND_URL=http://localhost:5173
+JWT_SECRET=your-jwt-secret
+```
+
+The server loads environment variables automatically using `dotenv`.
 
 ## Project Structure
 

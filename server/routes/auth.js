@@ -53,7 +53,7 @@ router.post('/register', (req, res) => {
   ).run(name, lastName, companyName, email, hashedPassword);
 
   const userId = result.lastInsertRowid;
-  db.prepare('INSERT INTO config (userId) VALUES (?)').run(userId);
+  db.prepare('INSERT INTO config (userId, businessName) VALUES (?, ?)').run(userId, companyName);
 
   const user = { id: userId, name, lastName, companyName, email, image: null, parentUserId: null, isActive: 1 };
   const token = generateToken(user);

@@ -91,8 +91,14 @@ db.exec(`
     businessRnc TEXT,
     googleConnected INTEGER DEFAULT 0,
     googleEmail TEXT,
+    googleRefreshToken TEXT,
+    googleAccessToken TEXT,
+    googleTokenExpiry TEXT,
     outlookConnected INTEGER DEFAULT 0,
     outlookEmail TEXT,
+    outlookRefreshToken TEXT,
+    outlookAccessToken TEXT,
+    outlookTokenExpiry TEXT,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 
@@ -133,6 +139,12 @@ const configMigrations = [
   ['whatsappBusinessAccountId', 'ALTER TABLE config ADD COLUMN whatsappBusinessAccountId TEXT'],
   ['whatsappAccessToken', 'ALTER TABLE config ADD COLUMN whatsappAccessToken TEXT'],
   ['whatsappWebhookVerifyToken', 'ALTER TABLE config ADD COLUMN whatsappWebhookVerifyToken TEXT'],
+  ['googleRefreshToken', 'ALTER TABLE config ADD COLUMN googleRefreshToken TEXT'],
+  ['googleAccessToken', 'ALTER TABLE config ADD COLUMN googleAccessToken TEXT'],
+  ['googleTokenExpiry', 'ALTER TABLE config ADD COLUMN googleTokenExpiry TEXT'],
+  ['outlookRefreshToken', 'ALTER TABLE config ADD COLUMN outlookRefreshToken TEXT'],
+  ['outlookAccessToken', 'ALTER TABLE config ADD COLUMN outlookAccessToken TEXT'],
+  ['outlookTokenExpiry', 'ALTER TABLE config ADD COLUMN outlookTokenExpiry TEXT'],
 ];
 
 for (const [column, statement] of configMigrations) {
