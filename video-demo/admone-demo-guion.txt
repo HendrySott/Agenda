@@ -1,0 +1,61 @@
+[00:00] Bienvenido a Admone, la plataforma para organizar la agenda de tu negocio de servicios: citas, equipo, clientes y recordatorios automáticos.
+
+[00:13] Esta es la página de inicio. Resume lo que ofrece: calendario semanal y diario, gestión de equipo y clientes, recordatorios automáticos y un sistema adaptado al tipo de tu negocio.
+
+[00:28] Para empezar, creamos una cuenta. Lo primero que pide es el tipo de negocio, porque todo el sistema se adapta a él.
+
+[00:39] Hay trece tipos: salones, clínicas, centros educativos, gimnasios, talleres, bufetes, y una opción Otro, donde tú mismo especificas qué negocio tienes.
+
+[00:53] Elegimos Clínica o consultorio médico.
+
+[01:03] Al crear la cuenta, ya vemos la plataforma hablando el idioma de una clínica: doctores, pacientes y consultas, en lugar de empleados, clientes y citas.
+
+[01:15] Empecemos agregando el equipo. En la sección Doctores registramos a cada profesional con su contacto, horario, días laborales y color en el calendario.
+
+[01:28] Agregamos un segundo doctor y listo: cada uno tiene su tarjeta con estado y disponibilidad.
+
+[01:38] Ahora los pacientes. Cada paciente se asigna a un doctor, y guardamos su correo y teléfono para poder enviarle recordatorios.
+
+[01:48] Un segundo paciente, asignado al otro doctor.
+
+[01:59] Pasemos a la configuración. Aquí está la información del negocio, con su tipo, dirección y horario, que se usa en los mensajes a los clientes.
+
+[02:11] Los canales de notificación son tres: correo electrónico por SMTP, WhatsApp Business y Telegram. Cada uno se puede activar o desactivar.
+
+[02:23] Cada canal tiene su botón de prueba. Probamos el correo y recibimos la confirmación de que el mensaje salió correctamente.
+
+[02:34] Para WhatsApp indicamos los datos de la API de Meta. El sistema normaliza los números de teléfono por nosotros, y permite usar una plantilla aprobada para escribir a cualquier cliente.
+
+[02:48] Y Telegram: creamos un bot con BotFather, pegamos su token, y el sistema lo valida y detecta el nombre del bot al guardar.
+
+[02:59] Para recibir mensajes por Telegram, cada paciente abre un enlace personal de vinculación. Lo copiamos desde la lista de pacientes, el paciente lo abre y pulsa Iniciar, y luego sincronizamos.
+
+[03:15] Ahora el paciente aparece como Telegram vinculado.
+
+[03:19] Las plantillas de recordatorio ya vienen creadas para una clínica: una dos días antes y otra el mismo día. Se envían solas por todos los canales activos, y puedes crear las tuyas con variables como el nombre del paciente, el día y la hora.
+
+[03:38] Vamos al calendario, donde se programan las consultas. Elegimos el doctor, el paciente, el día y el horario.
+
+[03:55] Fíjate que el paciente solo aparece si pertenece al doctor elegido. Y como el paciente tiene correo, WhatsApp y Telegram configurados, podemos avisarle por los tres canales al mismo tiempo.
+
+[04:10] Al guardar, el sistema muestra el resultado de cada envío: correo, WhatsApp y Telegram.
+
+[04:19] La consulta aparece en el calendario, con el color del doctor.
+
+[04:25] El sistema también protege contra errores: si intentamos reservar al mismo doctor en un horario que ya está ocupado, lo rechaza con un mensaje claro y conserva los datos del formulario.
+
+[04:43] Agendamos una consulta con el otro doctor, a la misma hora, que sí está permitido.
+
+[04:58] Podemos filtrar el calendario por doctor, buscar por nombre, y cambiar entre la vista semanal y la diaria.
+
+[05:11] Al abrir una consulta vemos sus detalles, y podemos editarla o eliminarla.
+
+[05:20] Desde el menú de usuario administramos la cuenta: foto, datos personales, contraseña, y accesos para el resto del equipo.
+
+[05:31] Creamos un acceso para una recepcionista. El sistema genera una contraseña temporal aleatoria que se muestra una sola vez.
+
+[05:41] Y lo más importante: si tu negocio cambia, o te equivocaste al registrarte, puedes cambiar el tipo en cualquier momento. Veamos qué pasa si lo cambiamos a Gimnasio.
+
+[05:55] Al instante, toda la plataforma cambia de vocabulario: entrenadores, miembros y sesiones.
+
+[06:04] Esto es Admone: una agenda profesional, adaptada a tu tipo de negocio, con recordatorios automáticos por correo, WhatsApp y Telegram. Gracias por ver este video.

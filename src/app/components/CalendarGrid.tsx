@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppointmentCard } from './AppointmentCard';
 import { Appointment } from '../types';
+import { useVocabulary } from '../context/VocabularyContext';
 
 interface CalendarGridProps {
   appointments: Appointment[];
@@ -15,6 +16,7 @@ export function CalendarGrid({
   currentWeek,
   onAppointmentClick
 }: CalendarGridProps) {
+  const vocab = useVocabulary();
   const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const hours = Array.from({ length: 14 }, (_, i) => i + 8); // 8 AM to 9 PM
 
@@ -43,7 +45,7 @@ export function CalendarGrid({
             <h2 className="text-base text-gray-900 sm:text-lg">{days[currentDay]}</h2>
           </div>
           <div className="bg-gray-50 p-3 sm:p-4">
-            <h3 className="text-sm text-gray-600">Citas</h3>
+            <h3 className="text-sm text-gray-600">{vocab.appointment.many}</h3>
           </div>
         </div>
 

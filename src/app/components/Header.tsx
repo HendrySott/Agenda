@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Users, UserCircle, Settings, LogOut, User, ChevronDown, Info } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useVocabulary } from '../context/VocabularyContext';
 
 interface HeaderProps {
   viewMode: string;
@@ -26,6 +27,7 @@ export function Header({
   companyName,
   onLogout,
 }: HeaderProps) {
+  const vocab = useVocabulary();
   const location = useLocation();
   const navigate = useNavigate();
   const isDashboard = location.pathname === '/';
@@ -44,8 +46,15 @@ export function Header({
 
   const navigateWeek = (direction: number) => {
     const newDate = new Date(currentWeek);
-    newDate.setDate(newDate.getDate() + (direction * 7));
+    newDate.setDate(newDate.getDate() + (direction * (viewMode === 'daily' ? 1 : 7)));
     setCurrentWeek(newDate);
+  };
+
+  const formatRange = (date: Date) => {
+    if (viewMode === 'daily') {
+      return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    return formatWeekRange(date);
   };
 
   const formatWeekRange = (date: Date) => {
@@ -66,8 +75,8 @@ export function Header({
 
   const navItems = [
     { path: '/', label: 'Calendario', icon: Calendar },
-    { path: '/employees', label: 'Empleados', icon: Users },
-    { path: '/clients', label: 'Clientes', icon: UserCircle },
+    { path: '/employees', label: vocab.employee.many, icon: Users },
+    { path: '/clients', label: vocab.client.many, icon: UserCircle },
     { path: '/config', label: 'Configuración', icon: Settings },
     { path: '/about', label: 'Acerca de', icon: Info }
   ];
@@ -77,7 +86,7 @@ export function Header({
       <div className="border-b border-gray-200 bg-slate-50 px-4 py-2 sm:px-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-700">
-            <h1>{companyName ? companyName : 'Nombre de la empresa'}</h1>
+            <p className="font-medium">{companyName || 'Mi negocio'}</p>
           </div>
           
             {userName && (
@@ -124,12 +133,15 @@ export function Header({
             )}
         </div>
       </div>
+      {isDashboard && (
       <div className="px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:justify-start lg:gap-6">
 
-               {companyName && (
-                          <h1 className="text-xl text-gray-900 sm:text-2xl">Horario Semanal</h1>
+            {isDashboard && (
+              <h1 className="text-xl text-gray-900 sm:text-2xl">
+                {viewMode === 'daily' ? 'Horario Diario' : 'Horario Semanal'}
+              </h1>
             )}
 
               
@@ -139,18 +151,20 @@ export function Header({
                 <Button
                   variant="outline"
                   size="sm"
+                  aria-label={viewMode === 'daily' ? 'Día anterior' : 'Semana anterior'}
                   onClick={() => navigateWeek(-1)}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
                 <span className="min-w-0 flex-1 text-center text-sm text-gray-600 sm:min-w-[200px]">
-                  {formatWeekRange(currentWeek)}
+                  {formatRange(currentWeek)}
                 </span>
 
                 <Button
                   variant="outline"
                   size="sm"
+                  aria-label={viewMode === 'daily' ? 'Día siguiente' : 'Semana siguiente'}
                   onClick={() => navigateWeek(1)}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -187,8 +201,8 @@ export function Header({
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Agregar Nueva Cita</span>
-                <span className="sm:hidden">Cita</span>
+                <span className="hidden sm:inline">Agregar {vocab.new(vocab.appointment)} {vocab.appointment.one}</span>
+                <span className="sm:hidden">{vocab.appointment.one}</span>
               </Button>
             )}
 
@@ -197,6 +211,7 @@ export function Header({
           </div>
         </div>
       </div>
+      )}
 
       <div className="border-t border-gray-200 px-2 sm:px-6">
         <nav className="flex gap-1 overflow-x-auto">

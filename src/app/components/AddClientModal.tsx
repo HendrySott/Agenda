@@ -6,14 +6,17 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Plus } from 'lucide-react';
 import { Client } from '../types';
+import { toast } from 'sonner';
+import { useVocabulary } from '../context/VocabularyContext';
 
 interface AddClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (client: Omit<Client, 'id' | 'employeeId'>) => void;
+  onAdd: (client: Omit<Client, 'id' | 'employeeId'>) => Promise<boolean> | boolean | void;
 }
 
 export function AddClientModal({ isOpen, onClose, onAdd }: AddClientModalProps) {
+  const vocab = useVocabulary();
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
@@ -23,15 +26,16 @@ export function AddClientModal({ isOpen, onClose, onAdd }: AddClientModalProps) 
     notes: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.lastName || !formData.email) {
-      alert('Por favor complete los campos requeridos');
+    if (!formData.name || !formData.lastName || !formData.email || !formData.phone) {
+      toast.error('Por favor complete los campos requeridos');
       return;
     }
 
-    onAdd(formData);
+    const ok = await onAdd(formData);
+    if (ok === false) return;
 
     // Reset form
     setFormData({
@@ -60,16 +64,16 @@ export function AddClientModal({ isOpen, onClose, onAdd }: AddClientModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Plus className="h-5 w-5" />
-            <span>Agregar Nuevo Cliente</span>
+            <span>Agregar {vocab.new(vocab.client)} {vocab.client.one}</span>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Nombre *</Label>
               <Input
@@ -106,7 +110,7 @@ export function AddClientModal({ isOpen, onClose, onAdd }: AddClientModalProps) 
             <Input
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+1234567890"
+              placeholder="+18095551234"
               required
             />
           </div>
@@ -131,12 +135,12 @@ export function AddClientModal({ isOpen, onClose, onAdd }: AddClientModalProps) 
             />
           </div>
 
-          <div className="flex space-x-2 pt-4 border-t">
+          <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row">
             <Button type="button" onClick={handleCancel} variant="outline" className="flex-1">
               Cancelar
             </Button>
             <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
-              Agregar Cliente
+              Agregar {vocab.client.one}
             </Button>
           </div>
         </form>

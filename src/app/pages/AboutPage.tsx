@@ -2,19 +2,20 @@ import React from 'react';
 import { CalendarDays, ExternalLink, Info, ShieldCheck, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useVocabulary } from '@/context/VocabularyContext';
 
 const APP_VERSION = '0.0.1';
 
-const details = [
+const getDetails = (v: ReturnType<typeof useVocabulary>) => [
   {
     icon: CalendarDays,
     title: 'Panel de agenda',
-    text: 'Organiza citas en vistas semanales y diarias para que el equipo pueda ver disponibilidad, clientes y horarios reservados en un solo lugar.',
+    text: `Organiza ${v.appointmentsLower} en vistas semanales y diarias para que el equipo pueda ver disponibilidad, ${v.clientsLower} y horarios reservados en un solo lugar.`,
   },
   {
     icon: Users,
-    title: 'Registros de equipo y clientes',
-    text: 'Mantiene empleados, clientes y citas conectados bajo la misma cuenta de negocio.',
+    title: `Registros de ${v.employeesLower} y ${v.clientsLower}`,
+    text: `Mantiene ${v.employeesLower}, ${v.clientsLower} y ${v.appointmentsLower} conectados bajo la misma cuenta de negocio.`,
   },
   {
     icon: ShieldCheck,
@@ -24,6 +25,8 @@ const details = [
 ];
 
 export function AboutPage() {
+  const vocab = useVocabulary();
+  const details = getDetails(vocab);
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-3 sm:p-6">
       <div className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-5 sm:p-6">
@@ -39,7 +42,7 @@ export function AboutPage() {
 
         <p className="max-w-3xl text-gray-600">
           Admone "CONVENIR en latin" es un panel de agenda y gestión de negocio creado para ayudar a equipos de servicios a administrar
-          citas, empleados, clientes, recordatorios y accesos desde un espacio práctico de trabajo.
+          {vocab.appointmentsLower}, {vocab.employeesLower}, {vocab.clientsLower}, recordatorios por email, WhatsApp y Telegram, y accesos desde un espacio práctico de trabajo.
         </p>
 
         <div>

@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AppFooter } from '@/components/AppFooter';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// @ts-expect-error módulo JS compartido con el servidor
+import { BUSINESS_TYPES, getBusinessType } from '../../../shared/businessTypes.js';
 import authBackground from '../../assets/images/image1.jpg';
 
 export function RegisterPage() {
-  const [form, setForm] = useState({ name: '', lastName: '', companyName: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', lastName: '', companyName: '', email: '', password: '', businessType: 'general', businessTypeLabel: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -18,9 +21,19 @@ export function RegisterPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const businessType = getBusinessType(form.businessType);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (form.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (form.businessType === 'other' && !form.businessTypeLabel.trim()) {
+      setError('Especifica qué tipo de negocio tienes');
+      return;
+    }
     setLoading(true);
     try {
       await register(form);
@@ -59,8 +72,41 @@ export function RegisterPage() {
               </div>
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1">Tipo de negocio</label>
+              <Select
+                value={form.businessType}
+                onValueChange={(value) => setForm({ ...form, businessType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo de negocio" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BUSINESS_TYPES.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
+                Adaptaremos la plataforma a tu negocio: tus {businessType.employee.many.toLowerCase()},{' '}
+                {businessType.client.many.toLowerCase()} y {businessType.appointment.many.toLowerCase()}.
+              </p>
+            </div>
+            {form.businessType === 'other' && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Especifica tu tipo de negocio</label>
+                <Input
+                  name="businessTypeLabel"
+                  value={form.businessTypeLabel}
+                  onChange={handleChange}
+                  placeholder="Ej: Estudio de tatuajes"
+                  maxLength={60}
+                  required
+                />
+              </div>
+            )}
+            <div>
               <label className="block text-sm font-medium mb-1">Nombre del Negocio</label>
-              <Input name="companyName" value={form.companyName} onChange={handleChange} placeholder="Mi Empresa SRL" required />
+              <Input name="companyName" value={form.companyName} onChange={handleChange} placeholder={businessType.placeholderBusiness} required />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Email</label>
@@ -68,7 +114,7 @@ export function RegisterPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Contraseña</label>
-              <Input name="password" type="password" value={form.password} onChange={handleChange} placeholder="••••••••" required />
+              <Input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Mínimo 6 caracteres" minLength={6} required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Registrando...' : 'Crear Cuenta'}

@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import * as api from '@/services/api';
@@ -41,7 +42,6 @@ export function AccountPage() {
   const [loadingAccessUsers, setLoadingAccessUsers] = useState(false);
   const [savingAccessUser, setSavingAccessUser] = useState(false);
   const [lastDefaultPassword, setLastDefaultPassword] = useState('');
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const canManageAccessUsers = !!user?.isMainAccount;
 
   useEffect(() => {
@@ -55,8 +55,8 @@ export function AccountPage() {
   }, [canManageAccessUsers]);
 
   const showMessage = (text: string, type: 'success' | 'error') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage(null), 4000);
+    if (type === 'success') toast.success(text);
+    else toast.error(text);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,13 +199,6 @@ export function AccountPage() {
         <p className="text-gray-600">Actualiza tus datos personales, foto de perfil y contraseña</p>
       </div>
 
-      {message && (
-        <div className={`p-3 rounded-lg text-sm ${
-          message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
-        }`}>
-          {message.text}
-        </div>
-      )}
 
       <Card>
         <CardHeader>
@@ -403,11 +396,11 @@ export function AccountPage() {
                 <Input name="email" type="email" value={accessForm.email} onChange={handleAccessChange} required />
               </div>
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-                Contraseña por defecto: <span className="font-medium">123{user?.companyName || form.companyName}</span>
+                Se generará una contraseña temporal aleatoria. Se mostrará una sola vez al crear el acceso: cópiala y compártela con la persona.
               </div>
               {lastDefaultPassword && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-                  Último usuario creado con contraseña: <span className="font-medium">{lastDefaultPassword}</span>
+                  Contraseña temporal del último acceso creado (cópiala ahora): <span className="font-medium">{lastDefaultPassword}</span>
                 </div>
               )}
               <Button type="submit" disabled={savingAccessUser} className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
@@ -466,6 +459,7 @@ export function AccountPage() {
                         type="button"
                         size="sm"
                         variant="outline"
+                        title="Eliminar acceso" aria-label="Eliminar acceso"
                         onClick={() => handleDeleteAccessUser(accessUser)}
                         className="text-red-600 hover:text-red-700"
                       >

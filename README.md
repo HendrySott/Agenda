@@ -4,27 +4,31 @@ A full-stack web application for managing weekly class/appointment schedules for
 
 ## Features
 
-- **Dashboard** — Weekly and monthly views of scheduled appointments with drag-and-drop support
+- **Business type** — On sign-up you choose your type of business (clinic, salon, school, gym, law firm, workshop… or a custom one) and the whole app adopts its vocabulary (Doctor/Paciente/Consulta, Estilista/Cliente/Cita, Tutor/Estudiante/Clase…). Editable later in Configuración
+- **Dashboard** — Weekly and daily views of scheduled appointments
 - **Employee Management** — Add, edit, delete employees with custom schedules, working days, and color coding
 - **Client Management** — Add, edit, delete clients and assign them to employees
 - **Appointments** — Create, reschedule, and remove appointments with employee/client assignment, notes, and Zoom links
 - **Authentication** — Register/login with JWT-based auth
 - **Business Config** — Configure business info, notification email, and email templates
 - **Calendar Sync** — Google and Outlook calendar integration with OAuth and event sync
-- **Email Templates** — Customizable email notifications triggered by appointment timing
+- **Notifications** — Email (SMTP), WhatsApp (Cloud API) and Telegram (bot), each with a built-in test button and per-appointment delivery results
+- **Automatic reminders** — Templates "2 days before" and "same day" are sent by a background scheduler (from `REMINDER_START_HOUR`, default 8, server time) through every enabled channel
 
 ## Tech Stack
 
 | Layer    | Technology                                                                 |
 | -------- | -------------------------------------------------------------------------- |
 | Frontend | React 18, TypeScript, Vite, React Router, Tailwind CSS v4, MUI, Radix UI   |
-| Backend  | Express 5, better-sqlite3, JWT, bcryptjs                                   |
+| Backend  | Express 5, PostgreSQL (pg), JWT, bcryptjs                                  |
 | UI       | shadcn/ui components, Lucide icons, Recharts, react-dnd, date-fns          |
 
 ## Getting Started
 
 ```bash
 npm install
+cp .env.example .env     # y ajusta DATABASE_URL, JWT_SECRET…
+docker compose up -d db  # PostgreSQL local (o usa cualquier PostgreSQL y su DATABASE_URL)
 npm run dev          # start Vite dev server (frontend on :5173)
 npm run server      # start Express API server (backend on :3001)
 npm run dev:all     # start both concurrently
@@ -71,3 +75,24 @@ server/
 ## License
 
 MIT
+
+### Notification channels
+
+- **Email**: SMTP host/port/user/password (use an app password for Gmail). Use *Probar email* to verify.
+- **WhatsApp**: Cloud API `Phone Number ID` + access token. Meta only allows free text inside the 24 h window; for reminders to any client create an approved template with 5 body variables (client, professional, day, time, business) and put its name in the config. Webhook URL for Meta is shown in Configuración.
+- **Telegram**: create a bot with @BotFather, paste the token, save. Copy each client's link (🔗 button in Clientes), the client opens it and presses *Start*, then press *Sincronizar vínculos*.
+
+Optional env vars: `REMINDER_START_HOUR`, `WHATSAPP_API_VERSION`, `DB_PATH`.
+
+### Base de datos (PostgreSQL)
+
+El servidor requiere `DATABASE_URL` y crea las tablas automáticamente al arrancar. `docker compose up` levanta PostgreSQL + la app.
+
+Si tienes datos de la versión anterior (SQLite, `server/schedule.db`):
+
+```bash
+npm install --no-save better-sqlite3
+npm run db:migrate-sqlite            # o: ... -- ruta/a/schedule.db
+```
+
+El script es repetible (no duplica filas) y conserva los ids originales.

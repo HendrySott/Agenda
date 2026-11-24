@@ -7,11 +7,13 @@ import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Plus, Edit, Trash2, User, Mail, Phone, MapPin } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
+import { toast } from 'sonner';
+import { useVocabulary } from '../context/VocabularyContext';
 
 interface EmployeesPageProps {
   employees: Employee[];
-  onAddEmployee: (employee: Omit<Employee, 'id'>) => void;
-  onUpdateEmployee: (employee: Employee) => void;
+  onAddEmployee: (employee: Omit<Employee, 'id'>) => Promise<boolean> | boolean | void;
+  onUpdateEmployee: (employee: Employee) => Promise<boolean> | boolean | void;
   onDeleteEmployee: (id: number) => void;
 }
 
@@ -37,6 +39,7 @@ const COLORS = [
 ];
 
 export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDeleteEmployee }: EmployeesPageProps) {
+  const vocab = useVocabulary();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState<Omit<Employee, 'id'>>({
@@ -88,7 +91,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
 
   const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen válido');
+      toast.error('Por favor selecciona un archivo de imagen válido');
       return;
     }
 
@@ -101,25 +104,23 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.lastName || !formData.email) {
-      alert('Por favor complete los campos requeridos');
+      toast.error('Por favor complete los campos requeridos');
       return;
     }
 
-    if (editingEmployee) {
-      onUpdateEmployee({ ...formData, id: editingEmployee.id });
-    } else {
-      onAddEmployee(formData);
-    }
+    const ok = editingEmployee
+      ? await onUpdateEmployee({ ...formData, id: editingEmployee.id })
+      : await onAddEmployee(formData);
 
-    setIsModalOpen(false);
+    if (ok !== false) setIsModalOpen(false);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('¿Está seguro de eliminar este empleado?')) {
+    if (confirm(`¿Está seguro de eliminar ${vocab.this(vocab.employee)} ${vocab.employeeLower}? También se eliminarán sus ${vocab.clientsLower} y ${vocab.appointmentsLower}.`)) {
       onDeleteEmployee(id);
     }
   };
@@ -159,12 +160,12 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
     <div className="p-3 sm:p-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="mb-2 text-2xl text-gray-900 sm:text-3xl">Empleados</h1>
-          <p className="text-gray-600">Gestiona tu equipo de empleados</p>
+          <h1 className="mb-2 text-2xl text-gray-900 sm:text-3xl">{vocab.employee.many}</h1>
+          <p className="text-gray-600">Gestiona tu equipo de {vocab.employeesLower}</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
-          Agregar Empleado
+          Agregar {vocab.employee.one}
         </Button>
       </div>
 
@@ -188,10 +189,10 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
                 </div>
               </div>
               <div className="flex space-x-2 self-end sm:self-start">
-                <Button size="sm" variant="outline" onClick={() => handleOpenModal(employee)}>
+                <Button size="sm" variant="outline" title="Editar" aria-label="Editar" onClick={() => handleOpenModal(employee)}>
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => handleDelete(employee.id)} className="text-red-600 hover:text-red-700">
+                <Button size="sm" variant="outline" title="Eliminar" aria-label="Eliminar" onClick={() => handleDelete(employee.id)} className="text-red-600 hover:text-red-700">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -206,14 +207,16 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
                 <Phone className="h-4 w-4 mr-2 shrink-0" />
                 <span className="truncate">{employee.phone}</span>
               </div>
-              <div className="flex min-w-0 items-center text-gray-600">
-                <MapPin className="h-4 w-4 mr-2 shrink-0" />
-                <span className="truncate">{employee.address}</span>
-              </div>
+              {employee.address && (
+                <div className="flex min-w-0 items-center text-gray-600">
+                  <MapPin className="h-4 w-4 mr-2 shrink-0" />
+                  <span className="truncate">{employee.address}</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500 mb-2">Horario: {employee.schedule}</p>
+              {employee.schedule && <p className="text-xs text-gray-500 mb-2">Horario: {employee.schedule}</p>}
               <div className="flex flex-wrap gap-1">
                 {employee.workingDays.map(day => (
                   <span key={day} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -230,7 +233,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
         <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingEmployee ? 'Editar Empleado' : 'Agregar Nuevo Empleado'}
+              {editingEmployee ? `Editar ${vocab.employee.one}` : `Agregar ${vocab.new(vocab.employee)} ${vocab.employee.one}`}
             </DialogTitle>
           </DialogHeader>
 
@@ -308,7 +311,7 @@ export function EmployeesPage({ employees, onAddEmployee, onUpdateEmployee, onDe
                   />
                   {formData.image && (
                     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-2">
-                      <img src={formData.image} alt="Vista previa del empleado" className="h-24 w-full object-cover" />
+                      <img src={formData.image} alt={`Vista previa ${vocab.employee.gender === 'f' ? 'de la' : 'del'} ${vocab.employeeLower}`} className="h-24 w-full object-cover" />
                     </div>
                   )}
                 </div>

@@ -1,0 +1,123 @@
+1
+00:00:00,977 --> 00:00:12,557
+Bienvenido a Admone, la plataforma para organizar la agenda de tu negocio de servicios: citas, equipo, clientes y recordatorios automáticos.
+
+2
+00:00:13,779 --> 00:00:28,280
+Esta es la página de inicio. Resume lo que ofrece: calendario semanal y diario, gestión de equipo y clientes, recordatorios automáticos y un sistema adaptado al tipo de tu negocio.
+
+3
+00:00:28,889 --> 00:00:38,470
+Para empezar, creamos una cuenta. Lo primero que pide es el tipo de negocio, porque todo el sistema se adapta a él.
+
+4
+00:00:39,087 --> 00:00:52,544
+Hay trece tipos: salones, clínicas, centros educativos, gimnasios, talleres, bufetes, y una opción Otro, donde tú mismo especificas qué negocio tienes.
+
+5
+00:00:53,142 --> 00:00:56,857
+Elegimos Clínica o consultorio médico.
+
+6
+00:01:03,011 --> 00:01:15,388
+Al crear la cuenta, ya vemos la plataforma hablando el idioma de una clínica: doctores, pacientes y consultas, en lugar de empleados, clientes y citas.
+
+7
+00:01:15,997 --> 00:01:27,746
+Empecemos agregando el equipo. En la sección Doctores registramos a cada profesional con su contacto, horario, días laborales y color en el calendario.
+
+8
+00:01:28,360 --> 00:01:36,015
+Agregamos un segundo doctor y listo: cada uno tiene su tarjeta con estado y disponibilidad.
+
+9
+00:01:38,187 --> 00:01:48,311
+Ahora los pacientes. Cada paciente se asigna a un doctor, y guardamos su correo y teléfono para poder enviarle recordatorios.
+
+10
+00:01:48,914 --> 00:01:53,255
+Un segundo paciente, asignado al otro doctor.
+
+11
+00:01:59,475 --> 00:02:10,799
+Pasemos a la configuración. Aquí está la información del negocio, con su tipo, dirección y horario, que se usa en los mensajes a los clientes.
+
+12
+00:02:11,404 --> 00:02:23,330
+Los canales de notificación son tres: correo electrónico por SMTP, WhatsApp Business y Telegram. Cada uno se puede activar o desactivar.
+
+13
+00:02:23,940 --> 00:02:33,612
+Cada canal tiene su botón de prueba. Probamos el correo y recibimos la confirmación de que el mensaje salió correctamente.
+
+14
+00:02:34,225 --> 00:02:47,963
+Para WhatsApp indicamos los datos de la API de Meta. El sistema normaliza los números de teléfono por nosotros, y permite usar una plantilla aprobada para escribir a cualquier cliente.
+
+15
+00:02:48,571 --> 00:02:58,745
+Y Telegram: creamos un bot con BotFather, pegamos su token, y el sistema lo valida y detecta el nombre del bot al guardar.
+
+16
+00:02:59,362 --> 00:03:14,424
+Para recibir mensajes por Telegram, cada paciente abre un enlace personal de vinculación. Lo copiamos desde la lista de pacientes, el paciente lo abre y pulsa Iniciar, y luego sincronizamos.
+
+17
+00:03:15,028 --> 00:03:19,369
+Ahora el paciente aparece como Telegram vinculado.
+
+18
+00:03:19,983 --> 00:03:38,385
+Las plantillas de recordatorio ya vienen creadas para una clínica: una dos días antes y otra el mismo día. Se envían solas por todos los canales activos, y puedes crear las tuyas con variables como el nombre del paciente, el día y la hora.
+
+19
+00:03:38,990 --> 00:03:47,936
+Vamos al calendario, donde se programan las consultas. Elegimos el doctor, el paciente, el día y el horario.
+
+20
+00:03:55,622 --> 00:04:10,330
+Fíjate que el paciente solo aparece si pertenece al doctor elegido. Y como el paciente tiene correo, WhatsApp y Telegram configurados, podemos avisarle por los tres canales al mismo tiempo.
+
+21
+00:04:10,933 --> 00:04:18,693
+Al guardar, el sistema muestra el resultado de cada envío: correo, WhatsApp y Telegram.
+
+22
+00:04:19,296 --> 00:04:24,543
+La consulta aparece en el calendario, con el color del doctor.
+
+23
+00:04:25,160 --> 00:04:39,167
+El sistema también protege contra errores: si intentamos reservar al mismo doctor en un horario que ya está ocupado, lo rechaza con un mensaje claro y conserva los datos del formulario.
+
+24
+00:04:43,115 --> 00:04:49,842
+Agendamos una consulta con el otro doctor, a la misma hora, que sí está permitido.
+
+25
+00:04:58,942 --> 00:05:07,105
+Podemos filtrar el calendario por doctor, buscar por nombre, y cambiar entre la vista semanal y la diaria.
+
+26
+00:05:11,385 --> 00:05:17,578
+Al abrir una consulta vemos sus detalles, y podemos editarla o eliminarla.
+
+27
+00:05:20,909 --> 00:05:31,031
+Desde el menú de usuario administramos la cuenta: foto, datos personales, contraseña, y accesos para el resto del equipo.
+
+28
+00:05:31,639 --> 00:05:41,322
+Creamos un acceso para una recepcionista. El sistema genera una contraseña temporal aleatoria que se muestra una sola vez.
+
+29
+00:05:41,931 --> 00:05:55,085
+Y lo más importante: si tu negocio cambia, o te equivocaste al registrarte, puedes cambiar el tipo en cualquier momento. Veamos qué pasa si lo cambiamos a Gimnasio.
+
+30
+00:05:55,701 --> 00:06:03,380
+Al instante, toda la plataforma cambia de vocabulario: entrenadores, miembros y sesiones.
+
+31
+00:06:04,302 --> 00:06:17,849
+Esto es Admone: una agenda profesional, adaptada a tu tipo de negocio, con recordatorios automáticos por correo, WhatsApp y Telegram. Gracias por ver este video.

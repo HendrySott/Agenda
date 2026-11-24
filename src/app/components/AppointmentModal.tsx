@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from './ui/label';
 import { Calendar, Clock, User, Link, Trash2, Edit } from 'lucide-react';
 import { Appointment, Employee, Client } from '../types';
+import { useVocabulary } from '../context/VocabularyContext';
 
 interface AppointmentModalProps {
   appointment: Appointment;
@@ -14,7 +15,7 @@ interface AppointmentModalProps {
   clients: Client[];
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (appointment: Appointment) => void;
+  onUpdate: (appointment: Appointment) => Promise<boolean> | boolean | void;
   onDelete: (id: number) => void;
 }
 
@@ -27,6 +28,7 @@ export function AppointmentModal({
   onUpdate,
   onDelete
 }: AppointmentModalProps) {
+  const vocab = useVocabulary();
   const [isEditing, setIsEditing] = useState(false);
   const [editedAppointment, setEditedAppointment] = useState(appointment);
 
@@ -43,7 +45,7 @@ export function AppointmentModal({
     ? clients.filter(c => c.employeeId === editedAppointment.employeeId)
     : clients;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const employee = employees.find(e => e.id === editedAppointment.employeeId);
     const client = clients.find(c => c.id === editedAppointment.clientId);
     const updatedAppointment = {
@@ -52,8 +54,8 @@ export function AppointmentModal({
       clientName: client ? `${client.name} ${client.lastName}` : editedAppointment.clientName,
       color: employee?.color || editedAppointment.color
     };
-    onUpdate(updatedAppointment);
-    setIsEditing(false);
+    const ok = await onUpdate(updatedAppointment);
+    if (ok !== false) setIsEditing(false);
   };
 
   const handleCancel = () => {
@@ -62,7 +64,7 @@ export function AppointmentModal({
   };
 
   const handleDelete = () => {
-    if (window.confirm('¿Está seguro de eliminar esta cita?')) {
+    if (window.confirm(`¿Está seguro de eliminar ${vocab.this(vocab.appointment)} ${vocab.appointmentLower}?`)) {
       onDelete(appointment.id);
     }
   };
@@ -73,7 +75,7 @@ export function AppointmentModal({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Calendar className="h-5 w-5" />
-            <span>Detalles de la Cita</span>
+            <span>Detalles {vocab.appointment.gender === 'f' ? 'de la' : 'del'} {vocab.appointment.one}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -85,7 +87,7 @@ export function AppointmentModal({
                 <div className="flex items-center space-x-3">
                   <div className={`w-4 h-4 ${appointment.color} rounded-full`} />
                   <div>
-                    <p className="text-sm text-gray-600">Empleado</p>
+                    <p className="text-sm text-gray-600">{vocab.employee.one}</p>
                     <p className="text-gray-900">{appointment.employeeName}</p>
                   </div>
                 </div>
@@ -93,7 +95,7 @@ export function AppointmentModal({
                 <div className="flex items-start space-x-3">
                   <User className="h-4 w-4 text-gray-400 mt-1" />
                   <div>
-                    <p className="text-sm text-gray-600">Cliente</p>
+                    <p className="text-sm text-gray-600">{vocab.client.one}</p>
                     <p className="text-gray-900">{appointment.clientName}</p>
                   </div>
                 </div>
@@ -120,7 +122,7 @@ export function AppointmentModal({
                   <div className="flex items-start space-x-3">
                     <Link className="h-4 w-4 text-gray-400 mt-1" />
                     <div>
-                      <p className="text-sm text-gray-600">Enlace de Zoom</p>
+                      <p className="text-sm text-gray-600">Enlace de videollamada</p>
                       <a
                         href={appointment.zoomLink}
                         target="_blank"
@@ -164,7 +166,7 @@ export function AppointmentModal({
             // Edit mode
             <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
               <div>
-                <Label>Empleado *</Label>
+                <Label>{vocab.employee.one} *</Label>
                 <Select
                   value={editedAppointment.employeeId.toString()}
                   onValueChange={(value) => setEditedAppointment({
@@ -174,7 +176,7 @@ export function AppointmentModal({
                   })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar empleado" />
+                    <SelectValue placeholder={`Seleccionar ${vocab.employeeLower}`} />
                   </SelectTrigger>
                   <SelectContent>
                     {employees.map((employee) => (
@@ -190,7 +192,7 @@ export function AppointmentModal({
               </div>
 
               <div>
-                <Label>Cliente *</Label>
+                <Label>{vocab.client.one} *</Label>
                 <Select
                   value={editedAppointment.clientId.toString()}
                   onValueChange={(value) => setEditedAppointment({
@@ -199,7 +201,7 @@ export function AppointmentModal({
                   })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
+                    <SelectValue placeholder={`Seleccionar ${vocab.clientLower}`} />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredClients.map((client) => (
@@ -280,7 +282,7 @@ export function AppointmentModal({
               </div>
 
               <div>
-                <Label>Enlace de Zoom</Label>
+                <Label>Enlace de videollamada</Label>
                 <Input
                   value={editedAppointment.zoomLink}
                   onChange={(e) => setEditedAppointment({

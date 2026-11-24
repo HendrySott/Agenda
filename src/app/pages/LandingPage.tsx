@@ -17,7 +17,7 @@ const features = [
   {
     icon: Calendar,
     title: 'Calendario Inteligente',
-    desc: 'Vista semanal y diaria de todas tus citas con colores y arrastrar y soltar.',
+    desc: 'Vista semanal y diaria de toda tu agenda, con un color por cada miembro de tu equipo.',
   },
   {
     icon: Users,
@@ -27,30 +27,23 @@ const features = [
   {
     icon: UserCircle,
     title: 'Gestión de Clientes',
-    desc: 'Registra clientes, asígnalos a empleados y guarda su historial.',
+    desc: 'Registra a tus clientes, asígnalos a tu equipo y guarda sus datos de contacto y notas.',
   },
   {
     icon: Bell,
-    title: 'Recordatorios por Email',
-    desc: 'Notifica automáticamente a tus clientes antes de sus citas.',
+    title: 'Recordatorios automáticos',
+    desc: 'Avisa a tus clientes 2 días antes y el mismo día de su cita, sin que tengas que acordarte.',
   },
   {
     icon: MessageSquare,
-    title: 'Notificaciones WhatsApp',
-    desc: 'Envía recordatorios y confirmaciones directamente a WhatsApp.',
+    title: 'WhatsApp, Telegram y Email',
+    desc: 'Envía confirmaciones y recordatorios por el canal que prefiera cada cliente.',
   },
   {
     icon: Mail,
-    title: 'Plantillas de Correo',
-    desc: 'Personaliza mensajes con tu marca para cada tipo de recordatorio.',
+    title: 'Adaptado a tu negocio',
+    desc: 'Clínicas, salones, academias, gimnasios, talleres y más: la plataforma usa los términos de tu sector.',
   },
-];
-
-const stats = [
-  { value: '10k+', label: 'Citas gestionadas' },
-  { value: '500+', label: 'Negocios activos' },
-  { value: '98%', label: 'Satisfacción' },
-  { value: '24/7', label: 'Soporte' },
 ];
 
 export function LandingPage() {
@@ -75,7 +68,7 @@ export function LandingPage() {
               onClick={() => navigate('/register')}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 px-3 text-white shadow-md hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg sm:px-4"
             >
-              <span className="hidden sm:inline">Registrarse Gratis</span>
+              <span className="hidden sm:inline">Registrarse</span>
               <span className="sm:hidden">Registro</span>
             </Button>
           </div>
@@ -91,7 +84,7 @@ export function LandingPage() {
         <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-700">
             <Clock className="size-4" />
-            La plataforma #1 para gestionar tu negocio
+            Agenda y gestión para negocios de servicios
           </div>
           <h1 className="mb-6 text-4xl font-bold leading-[1.1] tracking-tight  sm:text-5xl md:text-6xl">
             Tu agenda profesional{' '}
@@ -100,7 +93,7 @@ export function LandingPage() {
             </span>
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-gray-500 sm:text-lg md:text-xl">
-            Organiza citas, empleados y clientes. Envía recordatorios por email y WhatsApp.
+            Organiza citas, equipo y clientes. Envía recordatorios por email, WhatsApp y Telegram.
             Todo lo que necesitas para hacer crecer tu negocio.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -109,7 +102,7 @@ export function LandingPage() {
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6 text-base text-white shadow-lg hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
             >
-              Comenzar aqui
+              Comenzar ahora
               <ArrowRight className="size-4" />
             </Button>
            
@@ -157,7 +150,7 @@ export function LandingPage() {
             ¿Listo para optimizar tu negocio?
           </h2>
           <p className="text-gray-400 mb-10 max-w-lg mx-auto">
-            Regístrate gratis y comienza a gestionar tus citas, empleados y clientes en minutos.
+            Regístrate, elige el tipo de tu negocio y empieza a gestionar tu agenda en minutos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -165,7 +158,7 @@ export function LandingPage() {
               size="lg"
               className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-6 text-base"
             >
-              Crear Cuenta Gratis
+              Crear Cuenta
               <ArrowRight className="size-4" />
             </Button>
             <Button

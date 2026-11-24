@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { CalendarSync as CalendarSyncType } from '../../types';
 import * as api from '../../services/api';
+import { toast } from 'sonner';
 
 interface CalendarSyncProps {
   calendarSync: CalendarSyncType;
@@ -18,7 +19,7 @@ export function CalendarSync({ calendarSync, onUpdate }: CalendarSyncProps) {
       const { url } = await api.getGoogleCalendarAuthUrl();
       window.location.href = url;
     } catch (error) {
-      alert(`No se pudo iniciar la conexión con Google Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      toast.error(`No se pudo iniciar la conexión con Google Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
       setIsConnecting(null);
     }
   };
@@ -32,9 +33,9 @@ export function CalendarSync({ calendarSync, onUpdate }: CalendarSyncProps) {
         googleConnected: false,
         googleEmail: undefined,
       });
-      alert('Google Calendar desconectado');
+      toast.success('Google Calendar desconectado');
     } catch (error) {
-      alert(`No se pudo desconectar Google Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      toast.error(`No se pudo desconectar Google Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
@@ -44,7 +45,7 @@ export function CalendarSync({ calendarSync, onUpdate }: CalendarSyncProps) {
       const { url } = await api.getOutlookCalendarAuthUrl();
       window.location.href = url;
     } catch (error) {
-      alert(`No se pudo iniciar la conexión con Outlook Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      toast.error(`No se pudo iniciar la conexión con Outlook Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
       setIsConnecting(null);
     }
   };
@@ -58,9 +59,9 @@ export function CalendarSync({ calendarSync, onUpdate }: CalendarSyncProps) {
         outlookConnected: false,
         outlookEmail: undefined,
       });
-      alert('Outlook Calendar desconectado');
+      toast.success('Outlook Calendar desconectado');
     } catch (error) {
-      alert(`No se pudo desconectar Outlook Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      toast.error(`No se pudo desconectar Outlook Calendar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 

@@ -1,33 +1,46 @@
-import Database from 'better-sqlite3';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import pg from 'pg';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// PostgreSQL. Configura DATABASE_URL, p. ej.:
+//   DATABASE_URL=postgresql://usuario:clave@localhost:5432/admore
+// Para proveedores que exigen SSL (Neon, Supabase, Render…): DATABASE_SSL=true
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('Falta la variable de entorno DATABASE_URL (ej. postgresql://usuario:clave@localhost:5432/admore).');
+  process.exit(1);
+}
 
-const db = new Database(join(__dirname, 'schedule.db'));
+// Los enteros de 64 bits (COUNT, etc.) se devuelven como número
+pg.types.setTypeParser(20, (v) => Number(v));
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+const pool = new pg.Pool({
+  connectionString,
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+  max: 10,
+});
 
-db.exec(`
+pool.on('error', (error) => console.error('Error inesperado en el pool de PostgreSQL:', error));
+
+// ─── Esquema ─────────────────────────────────────────────────
+// Los identificadores van sin comillas (PostgreSQL los pasa a minúsculas);
+// al leer las filas se restauran los nombres camelCase que usa el resto del código.
+
+const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     lastName TEXT NOT NULL,
     companyName TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    parentUserId INTEGER,
+    parentUserId INTEGER REFERENCES users(id) ON DELETE CASCADE,
     isActive INTEGER DEFAULT 1,
     image TEXT,
-    createdAt TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (parentUserId) REFERENCES users(id) ON DELETE CASCADE
+    createdAt TEXT DEFAULT to_char(now() at time zone 'utc', 'YYYY-MM-DD HH24:MI:SS')
   );
 
   CREATE TABLE IF NOT EXISTS employees (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId INTEGER NOT NULL,
+    id SERIAL PRIMARY KEY,
+    userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     lastName TEXT NOT NULL,
     email TEXT,
@@ -37,13 +50,12 @@ db.exec(`
     schedule TEXT,
     workingDays TEXT DEFAULT '[]',
     status TEXT DEFAULT 'available',
-    color TEXT DEFAULT 'bg-blue-500',
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    color TEXT DEFAULT 'bg-blue-500'
   );
 
   CREATE TABLE IF NOT EXISTS clients (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId INTEGER NOT NULL,
+    id SERIAL PRIMARY KEY,
+    userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     lastName TEXT NOT NULL,
     email TEXT,
@@ -51,12 +63,12 @@ db.exec(`
     address TEXT,
     employeeId INTEGER,
     notes TEXT DEFAULT '',
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    telegramChatId TEXT
   );
 
   CREATE TABLE IF NOT EXISTS appointments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId INTEGER NOT NULL,
+    id SERIAL PRIMARY KEY,
+    userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     employeeId INTEGER NOT NULL,
     employeeName TEXT,
     clientId INTEGER NOT NULL,
@@ -66,12 +78,11 @@ db.exec(`
     endHour INTEGER NOT NULL,
     notes TEXT DEFAULT '',
     zoomLink TEXT DEFAULT '',
-    color TEXT DEFAULT 'bg-gray-500',
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    color TEXT DEFAULT 'bg-gray-500'
   );
 
   CREATE TABLE IF NOT EXISTS config (
-    userId INTEGER PRIMARY KEY,
+    userId INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     notificationEmail TEXT,
     emailEnabled INTEGER DEFAULT 1,
     emailFromName TEXT,
@@ -85,6 +96,14 @@ db.exec(`
     whatsappBusinessAccountId TEXT,
     whatsappAccessToken TEXT,
     whatsappWebhookVerifyToken TEXT,
+    whatsappTemplateName TEXT,
+    whatsappTemplateLang TEXT DEFAULT 'es',
+    phoneCountryCode TEXT DEFAULT '1',
+    telegramEnabled INTEGER DEFAULT 0,
+    telegramBotToken TEXT,
+    telegramBotUsername TEXT,
+    businessType TEXT DEFAULT 'general',
+    businessTypeLabel TEXT,
     businessName TEXT,
     businessAddress TEXT,
     businessHours TEXT,
@@ -98,59 +117,106 @@ db.exec(`
     outlookEmail TEXT,
     outlookRefreshToken TEXT,
     outlookAccessToken TEXT,
-    outlookTokenExpiry TEXT,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    outlookTokenExpiry TEXT
   );
 
   CREATE TABLE IF NOT EXISTS email_templates (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId INTEGER NOT NULL,
+    id SERIAL PRIMARY KEY,
+    userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     subject TEXT NOT NULL,
     body TEXT NOT NULL,
     triggerType TEXT NOT NULL,
-    isActive INTEGER DEFAULT 1,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    isActive INTEGER DEFAULT 1
   );
-`);
 
-const userColumns = db.prepare('PRAGMA table_info(users)').all().map(column => column.name);
+  CREATE TABLE IF NOT EXISTS reminder_log (
+    id SERIAL PRIMARY KEY,
+    userId INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    appointmentId INTEGER NOT NULL,
+    triggerType TEXT NOT NULL,
+    sentOn TEXT NOT NULL,
+    results TEXT,
+    UNIQUE (appointmentId, triggerType, sentOn)
+  );
 
-if (!userColumns.includes('parentUserId')) {
-  db.exec('ALTER TABLE users ADD COLUMN parentUserId INTEGER REFERENCES users(id) ON DELETE CASCADE');
+  CREATE INDEX IF NOT EXISTS idx_employees_user ON employees (userId);
+  CREATE INDEX IF NOT EXISTS idx_clients_user ON clients (userId);
+  CREATE INDEX IF NOT EXISTS idx_appointments_user ON appointments (userId);
+  CREATE INDEX IF NOT EXISTS idx_appointments_employee ON appointments (employeeId, day);
+  CREATE INDEX IF NOT EXISTS idx_templates_user ON email_templates (userId);
+  CREATE INDEX IF NOT EXISTS idx_users_parent ON users (parentUserId);
+`;
+
+// minúsculas -> camelCase, extraído del propio esquema
+const CAMEL = new Map(
+  [...new Set(SCHEMA.match(/\b[a-z]+[A-Z][A-Za-z]*\b/g) || [])].map((name) => [name.toLowerCase(), name])
+);
+
+function camelize(row) {
+  if (!row) return row;
+  const out = {};
+  for (const key of Object.keys(row)) out[CAMEL.get(key) || key] = row[key];
+  return out;
 }
 
-if (!userColumns.includes('isActive')) {
-  db.exec('ALTER TABLE users ADD COLUMN isActive INTEGER DEFAULT 1');
-  db.prepare('UPDATE users SET isActive = 1 WHERE isActive IS NULL').run();
+/** Convierte los marcadores "?" en $1, $2… */
+function toPgSql(sql) {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
 }
 
-const configColumns = db.prepare('PRAGMA table_info(config)').all().map(column => column.name);
-const configMigrations = [
-  ['emailEnabled', 'ALTER TABLE config ADD COLUMN emailEnabled INTEGER DEFAULT 1'],
-  ['emailFromName', 'ALTER TABLE config ADD COLUMN emailFromName TEXT'],
-  ['smtpHost', 'ALTER TABLE config ADD COLUMN smtpHost TEXT'],
-  ['smtpPort', 'ALTER TABLE config ADD COLUMN smtpPort TEXT'],
-  ['smtpUser', 'ALTER TABLE config ADD COLUMN smtpUser TEXT'],
-  ['smtpPassword', 'ALTER TABLE config ADD COLUMN smtpPassword TEXT'],
-  ['whatsappEnabled', 'ALTER TABLE config ADD COLUMN whatsappEnabled INTEGER DEFAULT 0'],
-  ['whatsappBusinessPhone', 'ALTER TABLE config ADD COLUMN whatsappBusinessPhone TEXT'],
-  ['whatsappPhoneNumberId', 'ALTER TABLE config ADD COLUMN whatsappPhoneNumberId TEXT'],
-  ['whatsappBusinessAccountId', 'ALTER TABLE config ADD COLUMN whatsappBusinessAccountId TEXT'],
-  ['whatsappAccessToken', 'ALTER TABLE config ADD COLUMN whatsappAccessToken TEXT'],
-  ['whatsappWebhookVerifyToken', 'ALTER TABLE config ADD COLUMN whatsappWebhookVerifyToken TEXT'],
-  ['googleRefreshToken', 'ALTER TABLE config ADD COLUMN googleRefreshToken TEXT'],
-  ['googleAccessToken', 'ALTER TABLE config ADD COLUMN googleAccessToken TEXT'],
-  ['googleTokenExpiry', 'ALTER TABLE config ADD COLUMN googleTokenExpiry TEXT'],
-  ['outlookRefreshToken', 'ALTER TABLE config ADD COLUMN outlookRefreshToken TEXT'],
-  ['outlookAccessToken', 'ALTER TABLE config ADD COLUMN outlookAccessToken TEXT'],
-  ['outlookTokenExpiry', 'ALTER TABLE config ADD COLUMN outlookTokenExpiry TEXT'],
-];
+function makeExecutor(client) {
+  const query = (sql, params) => client.query(toPgSql(sql), params);
+  return {
+    /** Primera fila o undefined */
+    async get(sql, ...params) {
+      const result = await query(sql, params);
+      return camelize(result.rows[0]);
+    },
+    /** Todas las filas */
+    async all(sql, ...params) {
+      const result = await query(sql, params);
+      return result.rows.map(camelize);
+    },
+    /** Ejecuta una sentencia. `changes` = filas afectadas; `id` = id devuelto con RETURNING id */
+    async run(sql, ...params) {
+      const result = await query(sql, params);
+      return { changes: result.rowCount, id: result.rows[0]?.id };
+    },
+  };
+}
 
-for (const [column, statement] of configMigrations) {
-  if (!configColumns.includes(column)) {
-    db.exec(statement);
-  }
+const db = {
+  ...makeExecutor(pool),
+  /** Ejecuta `fn(tx)` en una transacción; hace rollback si lanza un error. */
+  async transaction(fn) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(makeExecutor(client));
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+  async close() {
+    await pool.end();
+  },
+};
+
+// Evita que dos instancias creen el esquema a la vez
+const setupClient = await pool.connect();
+try {
+  await setupClient.query('SELECT pg_advisory_lock(727274)');
+  await setupClient.query(SCHEMA);
+  await setupClient.query('SELECT pg_advisory_unlock(727274)');
+} finally {
+  setupClient.release();
 }
 
 export default db;

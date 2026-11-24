@@ -14,10 +14,11 @@ interface DashboardPageProps {
   onAddAppointment: (appointment: Omit<Appointment, 'id' | 'color'> & {
     sendEmailNotification: boolean;
     sendWhatsappNotification: boolean;
-  }) => void;
-  onUpdateAppointment: (appointment: Appointment) => void;
+    sendTelegramNotification: boolean;
+  }) => Promise<boolean> | boolean | void;
+  onUpdateAppointment: (appointment: Appointment) => Promise<boolean> | boolean | void;
   onDeleteAppointment: (id: number) => void;
-  onAddClient: (client: Omit<Client, 'id'>) => void;
+  onAddClient: (client: Omit<Client, 'id'>) => Promise<boolean> | boolean | void;
   viewMode: string;
   setViewMode: (mode: string) => void;
   currentWeek: Date;
@@ -70,11 +71,11 @@ export function DashboardPage({
     return matchesSearch && appointment.employeeId === selectedEmployee;
   });
 
-  const handleAddClientSubmit = (client: Omit<Client, 'id' | 'employeeId'>) => {
-    if (selectedEmployee !== 'all') {
-      onAddClient({ ...client, employeeId: selectedEmployee as number });
-      setIsAddClientModalOpen(false);
-    }
+  const handleAddClientSubmit = async (client: Omit<Client, 'id' | 'employeeId'>) => {
+    if (selectedEmployee === 'all') return false;
+    const ok = await onAddClient({ ...client, employeeId: selectedEmployee as number });
+    if (ok !== false) setIsAddClientModalOpen(false);
+    return ok;
   };
 
   return (

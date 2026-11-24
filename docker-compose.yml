@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admore
+      POSTGRES_PASSWORD: admore
+      POSTGRES_DB: admore
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://admore:admore@db:5432/admore
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET}
+      FRONTEND_URL: http://localhost:3001
+    ports:
+      - "3001:3001"
+
+volumes:
+  pgdata:

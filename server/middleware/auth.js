@@ -16,7 +16,7 @@ export function generateToken(user) {
   );
 }
 
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Token no proporcionado' });
@@ -25,9 +25,7 @@ export function authMiddleware(req, res, next) {
   const token = header.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare(
-      'SELECT id, name, lastName, companyName, email, parentUserId, isActive FROM users WHERE id = ?'
-    ).get(decoded.id);
+    const user = await db.get('SELECT id, name, lastName, companyName, email, parentUserId, isActive FROM users WHERE id = ?', decoded.id);
 
     if (!user) {
       return res.status(401).json({ error: 'Usuario no encontrado' });

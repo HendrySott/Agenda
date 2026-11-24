@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import db from '../db.js';
+import { randomBytes } from 'crypto';
 import { generateToken, authMiddleware } from '../middleware/auth.js';
+import { isValidBusinessType, buildDefaultTemplates, DEFAULT_BUSINESS_TYPE } from '../../shared/businessTypes.js';
 
 const router = Router();
 
@@ -35,25 +37,63 @@ function requireMainAccount(req, res) {
   return true;
 }
 
-router.post('/register', (req, res) => {
-  const { name, lastName, companyName, email, password } = req.body;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
+router.post('/register', async (req, res) => {
+  const name = String(req.body.name || '').trim();
+  const lastName = String(req.body.lastName || '').trim();
+  const companyName = String(req.body.companyName || '').trim();
+  const email = normalizeEmail(req.body.email);
+  const password = String(req.body.password || '');
+  const businessType = isValidBusinessType(req.body.businessType) ? req.body.businessType : DEFAULT_BUSINESS_TYPE;
+  const businessTypeLabel = businessType === 'other' ? String(req.body.businessTypeLabel || '').trim() : '';
 
   if (!name || !lastName || !companyName || !email || !password) {
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: 'El email no es válido' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  }
+  if (businessType === 'other' && !businessTypeLabel) {
+    return res.status(400).json({ error: 'Especifica qué tipo de negocio tienes' });
+  }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  const existing = await db.get('SELECT id FROM users WHERE lower(email) = ?', email);
   if (existing) {
     return res.status(409).json({ error: 'El email ya está registrado' });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const result = db.prepare(
-    'INSERT INTO users (name, lastName, companyName, email, password) VALUES (?, ?, ?, ?, ?)'
-  ).run(name, lastName, companyName, email, hashedPassword);
+  let userId;
+  try {
+    userId = await db.transaction(async (tx) => {
+      const { id } = await tx.run(
+        'INSERT INTO users (name, lastName, companyName, email, password) VALUES (?, ?, ?, ?, ?) RETURNING id',
+        name, lastName, companyName, email, hashedPassword
+      );
 
-  const userId = result.lastInsertRowid;
-  db.prepare('INSERT INTO config (userId, businessName) VALUES (?, ?)').run(userId, companyName);
+      await tx.run(
+        'INSERT INTO config (userId, businessName, businessType, businessTypeLabel) VALUES (?, ?, ?, ?)',
+        id, companyName, businessType, businessTypeLabel
+      );
+
+      // Plantillas de recordatorio adaptadas al tipo de negocio
+      for (const t of buildDefaultTemplates(businessType)) {
+        await tx.run(
+          'INSERT INTO email_templates (userId, name, subject, body, triggerType, isActive) VALUES (?, ?, ?, ?, ?, ?)',
+          id, t.name, t.subject, t.body, t.triggerType, t.isActive ? 1 : 0
+        );
+      }
+      return id;
+    });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ error: 'El email ya está registrado' });
+    throw error;
+  }
 
   const user = { id: userId, name, lastName, companyName, email, image: null, parentUserId: null, isActive: 1 };
   const token = generateToken(user);
@@ -61,14 +101,15 @@ router.post('/register', (req, res) => {
   res.status(201).json({ user: toPublicUser(user), token });
 });
 
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
+router.post('/login', async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const password = String(req.body.password || '');
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email y contraseña son obligatorios' });
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  const user = await db.get('SELECT * FROM users WHERE lower(email) = ?', email);
   if (!user) {
     return res.status(401).json({ error: 'Email o contraseña inválidos' });
   }
@@ -87,10 +128,10 @@ router.post('/login', (req, res) => {
   res.json({ user: toPublicUser(user), token });
 });
 
-router.put('/account', authMiddleware, (req, res) => {
+router.put('/account', authMiddleware, async (req, res) => {
   const { name, lastName, companyName, email, currentPassword, newPassword } = req.body;
 
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const user = await db.get('SELECT * FROM users WHERE id = ?', req.user.id);
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
   if (currentPassword) {
@@ -103,125 +144,119 @@ router.put('/account', authMiddleware, (req, res) => {
 
   if (name) { updateFields.push('name = ?'); updateValues.push(name); }
   if (lastName) { updateFields.push('lastName = ?'); updateValues.push(lastName); }
-  if (companyName) { updateFields.push('companyName = ?'); updateValues.push(companyName); }
-  if (email && email !== user.email) {
-    const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, req.user.id);
+  if (companyName && req.user.isMainAccount) { updateFields.push('companyName = ?'); updateValues.push(companyName); }
+  const nextEmail = email ? normalizeEmail(email) : '';
+  if (nextEmail && nextEmail !== user.email) {
+    if (!EMAIL_RE.test(nextEmail)) return res.status(400).json({ error: 'El email no es válido' });
+    const existing = await db.get('SELECT id FROM users WHERE lower(email) = ? AND id != ?', nextEmail, req.user.id);
     if (existing) return res.status(409).json({ error: 'El email ya está registrado' });
-    updateFields.push('email = ?'); updateValues.push(email);
+    updateFields.push('email = ?'); updateValues.push(nextEmail);
   }
   if (newPassword) {
+    if (String(newPassword).length < 6) return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
     if (!currentPassword) return res.status(400).json({ error: 'Debes proporcionar la contraseña actual' });
     updateFields.push('password = ?'); updateValues.push(bcrypt.hashSync(newPassword, 10));
   }
 
   if (updateFields.length > 0) {
     updateValues.push(req.user.id);
-    db.prepare(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`).run(...updateValues);
+    await db.run(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`, ...updateValues);
   }
 
-  const updated = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(req.user.id);
+  const updated = await db.get(`SELECT ${publicUserSelect} FROM users WHERE id = ?`, req.user.id);
   const token = generateToken(updated);
 
   res.json({ user: toPublicUser(updated), token });
 });
 
-router.put('/avatar', authMiddleware, (req, res) => {
+router.put('/avatar', authMiddleware, async (req, res) => {
   const { image } = req.body;
   if (!image || typeof image !== 'string') {
     return res.status(400).json({ error: 'Imagen inválida' });
   }
-  db.prepare('UPDATE users SET image = ? WHERE id = ?').run(image, req.user.id);
-  const user = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(req.user.id);
+  await db.run('UPDATE users SET image = ? WHERE id = ?', image, req.user.id);
+  const user = await db.get(`SELECT ${publicUserSelect} FROM users WHERE id = ?`, req.user.id);
   const token = generateToken(user);
   res.json({ user: toPublicUser(user), token });
 });
 
-router.get('/users', authMiddleware, (req, res) => {
+router.get('/users', authMiddleware, async (req, res) => {
   if (!requireMainAccount(req, res)) return;
 
-  const users = db.prepare(`
+  const users = await db.all(`
     SELECT ${publicUserSelect}
     FROM users
     WHERE parentUserId = ?
-    ORDER BY isActive DESC, name COLLATE NOCASE, lastName COLLATE NOCASE
-  `).all(req.user.accountOwnerId);
+    ORDER BY isActive DESC, lower(name), lower(lastName)
+  `, req.user.accountOwnerId);
 
   res.json(users.map(toPublicUser));
 });
 
-router.post('/users', authMiddleware, (req, res) => {
+router.post('/users', authMiddleware, async (req, res) => {
   if (!requireMainAccount(req, res)) return;
 
-  const { name, lastName, email } = req.body;
+  const name = String(req.body.name || '').trim();
+  const lastName = String(req.body.lastName || '').trim();
+  const email = normalizeEmail(req.body.email);
   if (!name || !lastName || !email) {
     return res.status(400).json({ error: 'Nombre, apellido y email son obligatorios' });
   }
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: 'El email no es válido' });
+  }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  const existing = await db.get('SELECT id FROM users WHERE lower(email) = ?', email);
   if (existing) {
     return res.status(409).json({ error: 'El email ya está registrado' });
   }
 
-  const owner = db.prepare('SELECT id, companyName FROM users WHERE id = ?').get(req.user.accountOwnerId);
+  const owner = await db.get('SELECT id, companyName FROM users WHERE id = ?', req.user.accountOwnerId);
   if (!owner) {
     return res.status(404).json({ error: 'Cuenta principal no encontrada' });
   }
 
-  const defaultPassword = `123${owner.companyName}`;
-  const result = db.prepare(`
+  const defaultPassword = randomBytes(6).toString('base64url');
+  const result = await db.run(`
     INSERT INTO users (name, lastName, companyName, email, password, parentUserId, isActive)
     VALUES (?, ?, ?, ?, ?, ?, 1)
-  `).run(name, lastName, owner.companyName, email, bcrypt.hashSync(defaultPassword, 10), owner.id);
+    RETURNING id
+  `, name, lastName, owner.companyName, email, bcrypt.hashSync(defaultPassword, 10), owner.id);
 
-  const user = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(result.lastInsertRowid);
+  const user = await db.get(`SELECT ${publicUserSelect} FROM users WHERE id = ?`, result.id);
   res.status(201).json({ user: toPublicUser(user), defaultPassword });
 });
 
-router.put('/users/:id/status', authMiddleware, (req, res) => {
+router.put('/users/:id/status', authMiddleware, async (req, res) => {
   if (!requireMainAccount(req, res)) return;
 
   const { isActive } = req.body;
-  const user = db.prepare('SELECT id FROM users WHERE id = ? AND parentUserId = ?').get(req.params.id, req.user.accountOwnerId);
+  const user = await db.get('SELECT id FROM users WHERE id = ? AND parentUserId = ?', req.params.id, req.user.accountOwnerId);
   if (!user) {
     return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  db.prepare('UPDATE users SET isActive = ? WHERE id = ? AND parentUserId = ?')
-    .run(isActive ? 1 : 0, req.params.id, req.user.accountOwnerId);
+  await db.run('UPDATE users SET isActive = ? WHERE id = ? AND parentUserId = ?', isActive ? 1 : 0, req.params.id, req.user.accountOwnerId);
 
-  const updated = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(req.params.id);
+  const updated = await db.get(`SELECT ${publicUserSelect} FROM users WHERE id = ?`, req.params.id);
   res.json(toPublicUser(updated));
 });
 
-router.delete('/users/:id', authMiddleware, (req, res) => {
+router.delete('/users/:id', authMiddleware, async (req, res) => {
   if (!requireMainAccount(req, res)) return;
 
-  const user = db.prepare('SELECT id FROM users WHERE id = ? AND parentUserId = ?').get(req.params.id, req.user.accountOwnerId);
+  const user = await db.get('SELECT id FROM users WHERE id = ? AND parentUserId = ?', req.params.id, req.user.accountOwnerId);
   if (!user) {
     return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  db.prepare('DELETE FROM users WHERE id = ? AND parentUserId = ?').run(req.params.id, req.user.accountOwnerId);
+  await db.run('DELETE FROM users WHERE id = ? AND parentUserId = ?', req.params.id, req.user.accountOwnerId);
   res.json({ success: true });
 });
 
-router.get('/me', async (req, res) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token no proporcionado' });
-  }
-
-  try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'schedule-dashboard-secret-key-change-in-production';
-    const { default: jwt } = await import('jsonwebtoken');
-    const decoded = jwt.verify(header.split(' ')[1], JWT_SECRET);
-    const user = db.prepare(`SELECT ${publicUserSelect} FROM users WHERE id = ?`).get(decoded.id);
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-    if (!user.isActive) return res.status(403).json({ error: 'Usuario deshabilitado' });
-    res.json({ user: toPublicUser(user) });
-  } catch {
-    res.status(401).json({ error: 'Token inválido' });
-  }
+router.get('/me', authMiddleware, async (req, res) => {
+  const user = await db.get(`SELECT ${publicUserSelect} FROM users WHERE id = ?`, req.user.id);
+  res.json({ user: toPublicUser(user) });
 });
 
 export default router;

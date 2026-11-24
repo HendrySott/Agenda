@@ -205,3 +205,23 @@ export async function disconnectOutlookCalendar() {
   });
   return handleResponse(res);
 }
+
+// Notificaciones
+export async function testNotificationChannel(data) {
+  const res = await fetch(`${API}/notifications/test`, {
+    method: 'POST', headers: headers(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function syncTelegramLinks() {
+  const res = await fetch(`${API}/notifications/telegram/sync`, {
+    method: 'POST', headers: headers(),
+  });
+  return handleResponse(res);
+}
+
+export async function getClientTelegramLink(clientId) {
+  const res = await fetch(`${API}/clients/${clientId}/telegram-link`, { headers: headers() });
+  return handleResponse(res);
+}

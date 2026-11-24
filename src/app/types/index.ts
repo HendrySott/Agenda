@@ -21,6 +21,7 @@ export interface Client {
   address: string;
   employeeId: number;
   notes?: string;
+  telegramChatId?: string | null;
 }
 
 export interface Appointment {
@@ -51,6 +52,10 @@ export interface BusinessInfo {
   address: string;
   businessHours: string;
   rnc: string;
+  /** Identificador del tipo de negocio (ver shared/businessTypes.js) */
+  type: string;
+  /** Texto libre cuando type === 'other' */
+  typeLabel: string;
 }
 
 export interface CalendarSync {
@@ -73,6 +78,18 @@ export interface NotificationSettings {
   whatsappBusinessAccountId: string;
   whatsappAccessToken: string;
   whatsappWebhookVerifyToken: string;
+  whatsappTemplateName: string;
+  whatsappTemplateLang: string;
+  phoneCountryCode: string;
+  telegramEnabled: boolean;
+  telegramBotToken: string;
+  telegramBotUsername: string;
+}
+
+export interface NotificationResult {
+  channel: 'email' | 'whatsapp' | 'telegram' | 'general';
+  status: 'sent' | 'skipped' | 'failed';
+  message: string;
 }
 
 export interface Config {

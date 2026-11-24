@@ -4,6 +4,7 @@ import { Search, User, Plus, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Employee, Client, Appointment } from '../types';
 import { AddClientModal } from './AddClientModal';
+import { useVocabulary } from '../context/VocabularyContext';
 
 interface SidebarProps {
   employees: Employee[];
@@ -28,6 +29,7 @@ export function Sidebar({
   onAddClient,
   showAddClientButton
 }: SidebarProps) {
+  const vocab = useVocabulary();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -65,7 +67,7 @@ export function Sidebar({
       <div className="space-y-3 border-b border-gray-200 p-3 sm:p-4">
         <div>
           <label className="text-xs text-gray-500 uppercase tracking-wide mb-1.5 block">
-            Filtrar por Empleado
+            Filtrar por {vocab.employee.one}
           </label>
           <div className="relative">
             <button
@@ -92,7 +94,7 @@ export function Sidebar({
                     </span>
                   </>
                 ) : (
-                  <span className="text-sm text-gray-700">Todos los Empleados</span>
+                  <span className="text-sm text-gray-700">{vocab.all(vocab.employee)} {vocab.employee.many}</span>
                 )}
               </div>
               <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
@@ -108,7 +110,7 @@ export function Sidebar({
                   }}
                   className={`w-full flex items-center px-3 py-2.5 hover:bg-blue-50 transition-colors ${selectedEmployee === 'all' ? 'bg-blue-50' : ''}`}
                 >
-                  <span className="text-sm text-gray-900">Todos los Empleados</span>
+                  <span className="text-sm text-gray-900">{vocab.all(vocab.employee)} {vocab.employee.many}</span>
                 </button>
                 {employees.map(employee => (
                   <button
@@ -148,7 +150,7 @@ export function Sidebar({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar empleados o clientes..."
+            placeholder={`Buscar ${vocab.employeesLower} o ${vocab.clientsLower}...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -159,7 +161,7 @@ export function Sidebar({
       <div className="max-h-[18rem] flex-1 overflow-y-auto lg:max-h-none">
         <div className="p-3 sm:p-4">
           <h3 className="text-sm text-gray-500 uppercase tracking-wide mb-3">
-            {selectedEmployee === 'all' ? `Empleados (${employees.length})` : 'Empleado Seleccionado'}
+            {selectedEmployee === 'all' ? `${vocab.employee.many} (${employees.length})` : `${vocab.employee.one} ${vocab.selected(vocab.employee)}`}
           </h3>
 
           <div className="grid gap-2 sm:grid-cols-2 lg:block lg:space-y-2">
@@ -204,7 +206,7 @@ export function Sidebar({
         {showAddClientButton && selectedEmployee !== 'all' && (
           <div className="border-t border-gray-200 p-3 sm:p-4">
             <h3 className="text-sm text-gray-500 uppercase tracking-wide mb-3">
-              Clientes Asignados ({clients.length})
+              {vocab.client.many} {vocab.client.gender === 'f' ? 'Asignadas' : 'Asignados'} ({clients.length})
             </h3>
             <div className="space-y-2 mb-3">
               {clients.map(client => (
@@ -216,7 +218,7 @@ export function Sidebar({
             </div>
             <Button onClick={onAddClient} className="w-full bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
-              Agregar Cliente
+              Agregar {vocab.client.one}
             </Button>
           </div>
         )}
